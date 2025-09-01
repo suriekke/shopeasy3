@@ -197,3 +197,5 @@ Your ShopEasy customer app is now fully set up with:
 - ✅ **Deployed to production**
 
 **Your app is ready for customers!** 🚀
+
+

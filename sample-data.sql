@@ -63,3 +63,5 @@ INSERT INTO public.products (name, description, price, original_price, stock_qua
 ('Cerelac Baby Food', 'Infant cereal', 120.00, 150.00, 25, (SELECT id FROM public.categories WHERE name = 'Baby Care'), 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', '300 g', 20, true),
 ('Johnson\'s Baby Soap', 'Gentle baby soap', 35.00, 45.00, 30, (SELECT id FROM public.categories WHERE name = 'Baby Care'), 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', '75 g', 22, false),
 ('Baby Oil', 'Baby massage oil', 85.00, 110.00, 15, (SELECT id FROM public.categories WHERE name = 'Baby Care'), 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', '200 ml', 23, false);
+
+
