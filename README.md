@@ -1,164 +1,109 @@
-# 🛍️ ShopEasy Customer App
+# ShopEasy Customer App
 
-## 🎯 **Overview**
-Complete customer-facing e-commerce application built with React, TypeScript, and Tailwind CSS. Integrated with Vercel for hosting and Supabase for backend services.
+A modern e-commerce application built with React, TypeScript, and Supabase for real-time authentication and data management.
 
-## 🚀 **Features**
+## Features
 
-### **Customer Features**
-- ✅ **Product Catalog** - Browse all products with categories
-- ✅ **Shopping Cart** - Add/remove items, quantity management
-- ✅ **User Authentication** - Sign up, login, profile management
-- ✅ **Checkout Process** - Complete order placement
-- ✅ **Order Tracking** - View order status and history
-- ✅ **Wishlist** - Save favorite products
-- ✅ **User Profiles** - Manage account information
-- ✅ **Responsive Design** - Mobile-first approach
+- 🔐 **Real-time OTP Authentication** - Secure phone number verification with Supabase
+- 🛒 **Shopping Cart** - Add, remove, and manage cart items
+- 🔍 **Smart Search** - Product search with suggestions
+- 📍 **Location Management** - Change delivery location
+- 👤 **User Account** - Manage orders, addresses, and preferences
+- 📱 **Responsive Design** - Works on all devices
 
-### **Technical Features**
-- ✅ **React 18** - Latest React features
-- ✅ **TypeScript** - Type-safe development
-- ✅ **Tailwind CSS** - Utility-first styling
-- ✅ **Vercel Deployment** - Serverless hosting
-- ✅ **Supabase Integration** - Database, auth, storage
-- ✅ **Real-time Updates** - Live data synchronization
+## Setup Instructions
 
-## 🏗️ **Architecture**
+### 1. Supabase Setup
 
-```
-Customer App (Port 3001) ←→ Supabase Database
-         ↓
-    Vercel Hosting
-         ↓
-    Customer Interface
-```
+1. **Create a Supabase Project:**
+   - Go to [supabase.com](https://supabase.com)
+   - Create a new project
+   - Note down your project URL and anon key
 
-## 📋 **Prerequisites**
+2. **Enable Phone Auth:**
+   - Go to Authentication → Settings
+   - Enable "Phone Auth"
+   - Configure SMS provider (Twilio recommended)
 
-- Node.js 18+ 
-- npm or yarn
-- Supabase project (for database)
-- Vercel account (for hosting)
+3. **Environment Variables:**
+   - Copy `env.example` to `.env`
+   - Add your Supabase credentials:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
 
-## 🚀 **Quick Start**
+### 2. Install Dependencies
 
-### **1. Install Dependencies**
 ```bash
-cd customer-app
 npm install
 ```
 
-### **2. Environment Variables**
-Create `.env.local` file:
-```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-```
+### 3. Run Development Server
 
-### **3. Run Development Server**
 ```bash
 npm run dev
 ```
-Visit: `http://localhost:3001`
 
-### **4. Build for Production**
+### 4. Build for Production
+
 ```bash
 npm run build
 ```
 
-## 🌐 **Deployment**
+## Authentication Flow
 
-### **Deploy to Vercel**
-1. **Push to GitHub**
-2. **Connect to Vercel**
-3. **Add environment variables**
-4. **Deploy automatically**
+1. **Send OTP:** User enters phone number → Supabase sends SMS
+2. **Verify OTP:** User enters 6-digit code → Supabase verifies
+3. **Session Management:** Automatic session persistence
+4. **Logout:** Proper session cleanup
 
-### **Environment Variables (Vercel)**
-```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+## Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `VITE_SUPABASE_URL` | Your Supabase project URL | Yes |
+| `VITE_SUPABASE_ANON_KEY` | Your Supabase anon key | Yes |
+
+## Deployment
+
+### Vercel Deployment
+
+1. Connect your GitHub repository to Vercel
+2. Add environment variables in Vercel dashboard
+3. Deploy automatically on push to main branch
+
+### Environment Variables in Vercel
+
+Add these in your Vercel project settings:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+## Tech Stack
+
+- **Frontend:** React 18, TypeScript, Tailwind CSS
+- **Backend:** Supabase (PostgreSQL, Auth, Real-time)
+- **Build Tool:** Vite
+- **Deployment:** Vercel
+
+## Project Structure
+
+```
+src/
+├── App.tsx              # Main application component
+├── lib/
+│   └── supabase.ts      # Supabase client and auth helpers
+├── components/          # Reusable components
+└── types/              # TypeScript type definitions
 ```
 
-## 🔧 **API Integration**
+## Contributing
 
-### **Supabase Tables Used**
-- `products` - Product catalog
-- `users` - User accounts
-- `orders` - Customer orders
-- `order_items` - Order details
-- `cart_items` - Shopping cart
-- `wishlist_items` - User wishlists
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
-### **Authentication**
-- Email/password signup/login
-- JWT token management
-- User profile creation
-- Role-based access control
+## License
 
-## 📱 **Pages & Routes**
-
-- `/` - Home page with products
-- `/product/:id` - Product details
-- `/categories` - All product categories
-- `/cart` - Shopping cart
-- `/checkout` - Order placement
-- `/profile` - User account
-- `/orders` - Order history
-- `/wishlist` - Saved products
-
-## 🎨 **Styling**
-
-- **Tailwind CSS** - Utility classes
-- **Custom Components** - Reusable UI elements
-- **Responsive Design** - Mobile-first approach
-- **Dark/Light Mode** - Theme support (ready)
-
-## 🔒 **Security**
-
-- **Row Level Security (RLS)** - Database protection
-- **JWT Authentication** - Secure sessions
-- **Input Validation** - Data sanitization
-- **CORS Protection** - Cross-origin security
-
-## 📊 **Performance**
-
-- **Code Splitting** - Lazy loading
-- **Image Optimization** - WebP support
-- **Caching** - Browser and CDN
-- **Bundle Optimization** - Tree shaking
-
-## 🧪 **Testing**
-
-```bash
-# Run tests (when implemented)
-npm test
-
-# Run e2e tests (when implemented)
-npm run test:e2e
-```
-
-## 📈 **Monitoring**
-
-- **Vercel Analytics** - Performance metrics
-- **Error Tracking** - Sentry integration (ready)
-- **User Analytics** - Google Analytics (ready)
-
-## 🚀 **Next Steps**
-
-1. **Set up Supabase database**
-2. **Configure environment variables**
-3. **Deploy to Vercel**
-4. **Test all features**
-5. **Add payment integration**
-6. **Implement email notifications**
-
-## 📞 **Support**
-
-- **Documentation** - This README
-- **Issues** - GitHub issues
-- **Community** - Discord/Slack (when available)
-
----
-
-**Your ShopEasy customer app is ready for deployment!** 🎉
+MIT License

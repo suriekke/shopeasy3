@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { auth } from './lib/supabase'
 
 // Types
 interface Product {
@@ -48,7 +49,9 @@ const App: React.FC = () => {
   const [currentLocation, setCurrentLocation] = useState('B.N Reddy Nagar, Hyderabad')
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([])
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false)
-  const [userPhone, setUserPhone] = useState('8179688221')
+  const [userPhone, setUserPhone] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [otpError, setOtpError] = useState('')
 
   // Sample data - Blinkit style
   const categories: Category[] = [
@@ -79,6 +82,19 @@ const App: React.FC = () => {
       item.toLowerCase().includes(query.toLowerCase())
     ).slice(0, 5)
   }
+
+  // Check for existing user session on app load
+  useEffect(() => {
+    const checkUserSession = async () => {
+      const result = await auth.getCurrentUser()
+      if (result.success && result.user) {
+        setIsLoggedIn(true)
+        setUserPhone(result.user.phone || '')
+      }
+    }
+    
+    checkUserSession()
+  }, [])
 
   useEffect(() => {
     setProducts([
@@ -243,25 +259,56 @@ const App: React.FC = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0)
   }
 
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
     if (phoneNumber.length === 10) {
-      setShowOtpInput(true)
-      alert(`OTP sent to +91 ${phoneNumber}`)
+      setIsLoading(true)
+      setOtpError('')
+      
+      try {
+        const result = await auth.sendOTP(phoneNumber)
+        
+        if (result.success) {
+          setShowOtpInput(true)
+          alert(`OTP sent to +91 ${phoneNumber}`)
+        } else {
+          setOtpError('Failed to send OTP. Please try again.')
+        }
+      } catch (error) {
+        setOtpError('Failed to send OTP. Please try again.')
+      } finally {
+        setIsLoading(false)
+      }
     } else {
       alert('Please enter a valid 10-digit mobile number')
     }
   }
 
-  const handleVerifyOtp = () => {
-    if (otp === '123456') {
-      setIsLoggedIn(true)
-      setUserPhone(phoneNumber)
-      setShowLoginModal(false)
-      setPhoneNumber('')
-      setOtp('')
-      setShowOtpInput(false)
+  const handleVerifyOtp = async () => {
+    if (otp.length === 6) {
+      setIsLoading(true)
+      setOtpError('')
+      
+      try {
+        const result = await auth.verifyOTP(phoneNumber, otp)
+        
+        if (result.success) {
+          setIsLoggedIn(true)
+          setUserPhone(phoneNumber)
+          setShowLoginModal(false)
+          setPhoneNumber('')
+          setOtp('')
+          setShowOtpInput(false)
+          alert('Login successful!')
+        } else {
+          setOtpError('Invalid OTP. Please try again.')
+        }
+      } catch (error) {
+        setOtpError('Invalid OTP. Please try again.')
+      } finally {
+        setIsLoading(false)
+      }
     } else {
-      alert('Invalid OTP. Please try again.')
+      setOtpError('Please enter a 6-digit OTP')
     }
   }
 
@@ -339,15 +386,18 @@ const App: React.FC = () => {
                 </div>
                 <button
                   onClick={handleSendOtp}
-                  disabled={phoneNumber.length !== 10}
+                  disabled={phoneNumber.length !== 10 || isLoading}
                   className={`w-full py-4 rounded-lg font-semibold ${
-                    phoneNumber.length === 10 
+                    phoneNumber.length === 10 && !isLoading
                       ? 'bg-pink-600 text-white hover:bg-pink-700' 
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                 >
-                  Continue
+                  {isLoading ? 'Sending...' : 'Continue'}
                 </button>
+                {otpError && (
+                  <p className="text-red-500 text-sm text-center mt-2">{otpError}</p>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
@@ -366,15 +416,18 @@ const App: React.FC = () => {
                 </div>
                 <button
                   onClick={handleVerifyOtp}
-                  disabled={otp.length !== 6}
+                  disabled={otp.length !== 6 || isLoading}
                   className={`w-full py-4 rounded-lg font-semibold ${
-                    otp.length === 6 
+                    otp.length === 6 && !isLoading
                       ? 'bg-pink-600 text-white hover:bg-pink-700' 
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                 >
-                  Verify OTP
+                  {isLoading ? 'Verifying...' : 'Verify OTP'}
                 </button>
+                {otpError && (
+                  <p className="text-red-500 text-sm text-center mt-2">{otpError}</p>
+                )}
                 <button
                   onClick={() => setShowOtpInput(false)}
                   className="w-full py-2 text-pink-600 font-semibold"
@@ -470,8 +523,10 @@ const App: React.FC = () => {
                 Account Privacy
               </button>
               <button 
-                onClick={() => {
+                onClick={async () => {
+                  await auth.signOut()
                   setIsLoggedIn(false)
+                  setUserPhone('')
                   setShowAccountDropdown(false)
                   setView('HOME')
                 }}

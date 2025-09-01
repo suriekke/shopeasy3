@@ -3,18 +3,90 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co'
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Auth helper functions
+export const auth = {
+  // Send OTP to phone number
+  async sendOTP(phoneNumber: string) {
+    try {
+      const { data, error } = await supabase.auth.signInWithOtp({
+        phone: `+91${phoneNumber}`,
+        options: {
+          shouldCreateUser: true,
+        }
+      })
+      
+      if (error) {
+        throw error
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Error sending OTP:', error)
+      return { success: false, error }
     }
+  },
+
+  // Verify OTP
+  async verifyOTP(phoneNumber: string, token: string) {
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        phone: `+91${phoneNumber}`,
+        token: token,
+        type: 'sms'
+      })
+      
+      if (error) {
+        throw error
+      }
+      
+      return { success: true, data }
+    } catch (error) {
+      console.error('Error verifying OTP:', error)
+      return { success: false, error }
+    }
+  },
+
+  // Get current user
+  async getCurrentUser() {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser()
+      
+      if (error) {
+        throw error
+      }
+      
+      return { success: true, user }
+    } catch (error) {
+      console.error('Error getting current user:', error)
+      return { success: false, error }
+    }
+  },
+
+  // Sign out
+  async signOut() {
+    try {
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        throw error
+      }
+      
+      return { success: true }
+    } catch (error) {
+      console.error('Error signing out:', error)
+      return { success: false, error }
+    }
+  },
+
+  // Listen to auth state changes
+  onAuthStateChange(callback: (event: string, session: any) => void) {
+    return supabase.auth.onAuthStateChange(callback)
   }
-})
+}
+
+export default supabase
 
 // Database types
 export interface User {
