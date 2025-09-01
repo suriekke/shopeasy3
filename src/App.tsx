@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { auth } from './lib/supabase'
 
 // Types
 interface Product {
@@ -83,18 +82,50 @@ const App: React.FC = () => {
     ).slice(0, 5)
   }
 
-  // Check for existing user session on app load
-  useEffect(() => {
-    const checkUserSession = async () => {
-      const result = await auth.getCurrentUser()
-      if (result.success && result.user) {
-        setIsLoggedIn(true)
-        setUserPhone(result.user.phone || '')
-      }
+  // Mock auth functions
+  const handleSendOtp = async () => {
+    if (phoneNumber.length === 10) {
+      setIsLoading(true)
+      setOtpError('')
+      
+      // Simulate API call
+      setTimeout(() => {
+        setShowOtpInput(true)
+        setIsLoading(false)
+        alert(`OTP sent to +91 ${phoneNumber}`)
+      }, 1000)
+    } else {
+      alert('Please enter a valid 10-digit mobile number')
     }
-    
-    checkUserSession()
-  }, [])
+  }
+
+  const handleVerifyOtp = async () => {
+    if (otp.length === 6) {
+      setIsLoading(true)
+      setOtpError('')
+      
+      // Simulate API call
+      setTimeout(() => {
+        setIsLoggedIn(true)
+        setUserPhone(phoneNumber)
+        setShowLoginModal(false)
+        setPhoneNumber('')
+        setOtp('')
+        setShowOtpInput(false)
+        setIsLoading(false)
+        alert('Login successful!')
+      }, 1000)
+    } else {
+      setOtpError('Please enter a 6-digit OTP')
+    }
+  }
+
+  const handleLogout = () => {
+    setIsLoggedIn(false)
+    setUserPhone('')
+    setShowAccountDropdown(false)
+    setView('HOME')
+  }
 
   useEffect(() => {
     setProducts([
@@ -221,390 +252,107 @@ const App: React.FC = () => {
     ])
   }, [])
 
+  // Filter products based on search and category
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         product.category.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesCategory = !selectedCategory || product.category === selectedCategory
+    return matchesSearch && matchesCategory
+  })
+
+  // Cart functions
   const addToCart = (product: Product) => {
-    setCartItems(prev => {
-      const existing = prev.find(item => item.id === product.id)
-      if (existing) {
-        return prev.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
-      }
-      return [...prev, {
+    const existingItem = cartItems.find(item => item.id === product.id)
+    if (existingItem) {
+      setCartItems(cartItems.map(item =>
+        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+      ))
+    } else {
+      setCartItems([...cartItems, {
         id: product.id,
         name: product.name,
         price: product.price,
         quantity: 1,
         image: product.image
-      }]
-    })
+      }])
+    }
+  }
+
+  const removeFromCart = (productId: number) => {
+    setCartItems(cartItems.filter(item => item.id !== productId))
   }
 
   const updateCartQuantity = (productId: number, quantity: number) => {
     if (quantity <= 0) {
-      setCartItems(prev => prev.filter(item => item.id !== productId))
+      removeFromCart(productId)
     } else {
-      setCartItems(prev =>
-        prev.map(item =>
-          item.id === productId
-            ? { ...item, quantity }
-            : item
-        )
-      )
+      setCartItems(cartItems.map(item =>
+        item.id === productId ? { ...item, quantity } : item
+      ))
     }
   }
 
-  const getCartTotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0)
+  const cartTotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0)
+
+  // Handle search input
+  const handleSearchInput = (value: string) => {
+    setSearchQuery(value)
+    const suggestions = getSearchSuggestions(value)
+    setSearchSuggestions(suggestions)
+    setShowSearchSuggestions(suggestions.length > 0 && value.length > 0)
   }
 
-  const handleSendOtp = async () => {
-    if (phoneNumber.length === 10) {
-      setIsLoading(true)
-      setOtpError('')
-      
-      try {
-        const result = await auth.sendOTP(phoneNumber)
-        
-        if (result.success) {
-          setShowOtpInput(true)
-          alert(`OTP sent to +91 ${phoneNumber}`)
-        } else {
-          setOtpError('Failed to send OTP. Please try again.')
-        }
-      } catch (error) {
-        setOtpError('Failed to send OTP. Please try again.')
-      } finally {
-        setIsLoading(false)
-      }
-    } else {
-      alert('Please enter a valid 10-digit mobile number')
-    }
-  }
-
-  const handleVerifyOtp = async () => {
-    if (otp.length === 6) {
-      setIsLoading(true)
-      setOtpError('')
-      
-      try {
-        const result = await auth.verifyOTP(phoneNumber, otp)
-        
-        if (result.success) {
-          setIsLoggedIn(true)
-          setUserPhone(phoneNumber)
-          setShowLoginModal(false)
-          setPhoneNumber('')
-          setOtp('')
-          setShowOtpInput(false)
-          alert('Login successful!')
-        } else {
-          setOtpError('Invalid OTP. Please try again.')
-        }
-      } catch (error) {
-        setOtpError('Invalid OTP. Please try again.')
-      } finally {
-        setIsLoading(false)
-      }
-    } else {
-      setOtpError('Please enter a 6-digit OTP')
-    }
-  }
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value
-    setSearchQuery(query)
-    if (query.length > 2) {
-      setSearchSuggestions(getSearchSuggestions(query))
-      setShowSearchSuggestions(true)
-    } else {
-      setShowSearchSuggestions(false)
-    }
-  }
-
-  const handleSearchSuggestionClick = (suggestion: string) => {
-    setSearchQuery(suggestion)
-    setShowSearchSuggestions(false)
-  }
-
-  const handleAccountMenuClick = (menuItem: View) => {
+  // Handle account menu click
+  const handleAccountMenuClick = (viewName: View) => {
+    setView(viewName)
     setShowAccountDropdown(false)
-    setView(menuItem)
   }
-
-  const filteredProducts = products.filter(product => {
-    if (selectedCategory && product.category !== selectedCategory) return false
-    if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase())) return false
-    return true
-  })
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Login Modal */}
-      {showLoginModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-md p-6 relative">
-            <button 
-              onClick={() => setShowLoginModal(false)}
-              className="absolute top-6 left-6 text-black"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-
-            <div className="flex justify-end mb-6">
-              <div className="bg-yellow-400 text-black px-3 py-1 rounded font-bold text-lg">
-                shopeasy
-              </div>
-            </div>
-
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                India's last minute app
-              </h1>
-              <p className="text-lg text-gray-600">
-                Log in or Sign up
-              </p>
-            </div>
-
-            {!showOtpInput ? (
-              <div className="space-y-4">
-                <div className="relative">
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                    +91
-                  </div>
-                  <input
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    placeholder="Enter mobile number"
-                    className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                    maxLength={10}
-                  />
-                </div>
-                <button
-                  onClick={handleSendOtp}
-                  disabled={phoneNumber.length !== 10 || isLoading}
-                  className={`w-full py-4 rounded-lg font-semibold ${
-                    phoneNumber.length === 10 && !isLoading
-                      ? 'bg-pink-600 text-white hover:bg-pink-700' 
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-                >
-                  {isLoading ? 'Sending...' : 'Continue'}
-                </button>
-                {otpError && (
-                  <p className="text-red-500 text-sm text-center mt-2">{otpError}</p>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="Enter OTP"
-                    className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-center text-2xl tracking-widest"
-                    maxLength={6}
-                  />
-                  <p className="text-sm text-gray-500 mt-2 text-center">
-                    OTP sent to +91 {phoneNumber}
-                  </p>
-                </div>
-                <button
-                  onClick={handleVerifyOtp}
-                  disabled={otp.length !== 6 || isLoading}
-                  className={`w-full py-4 rounded-lg font-semibold ${
-                    otp.length === 6 && !isLoading
-                      ? 'bg-pink-600 text-white hover:bg-pink-700' 
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-                >
-                  {isLoading ? 'Verifying...' : 'Verify OTP'}
-                </button>
-                {otpError && (
-                  <p className="text-red-500 text-sm text-center mt-2">{otpError}</p>
-                )}
-                <button
-                  onClick={() => setShowOtpInput(false)}
-                  className="w-full py-2 text-pink-600 font-semibold"
-                >
-                  Change Number
-                </button>
-              </div>
-            )}
-
-            <p className="text-xs text-gray-500 mt-6 text-center">
-              By continuing, you agree to our{' '}
-              <a href="#" className="underline">Terms of service</a>
-              {' '}&{' '}
-              <a href="#" className="underline">Privacy policy</a>
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Location Modal */}
-      {showLocationModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-md p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">Change Location</h2>
-              <button 
-                onClick={() => setShowLocationModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="flex items-center space-x-4 mb-6">
-              <button className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
-                Detect my location
-              </button>
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-sm font-bold">
-                  OR
-                </div>
-              </div>
-              <input
-                type="text"
-                placeholder="search delivery location"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Account Dropdown */}
-      {showAccountDropdown && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-sm p-6">
-            <div className="mb-4">
-              <h2 className="text-xl font-bold text-gray-800">My Account</h2>
-              <p className="text-gray-600">{userPhone}</p>
-            </div>
-            
-            <div className="space-y-2 mb-6">
-              <button 
-                onClick={() => handleAccountMenuClick('MY_ORDERS')}
-                className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg"
-              >
-                My Orders
-              </button>
-              <button 
-                onClick={() => handleAccountMenuClick('SAVED_ADDRESSES')}
-                className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg"
-              >
-                Saved Addresses
-              </button>
-              <button 
-                onClick={() => handleAccountMenuClick('E_GIFT_CARDS')}
-                className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg"
-              >
-                E-Gift Cards
-              </button>
-              <button 
-                onClick={() => handleAccountMenuClick('FAQS')}
-                className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg"
-              >
-                FAQ's
-              </button>
-              <button 
-                onClick={() => handleAccountMenuClick('ACCOUNT_PRIVACY')}
-                className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg"
-              >
-                Account Privacy
-              </button>
-              <button 
-                onClick={async () => {
-                  await auth.signOut()
-                  setIsLoggedIn(false)
-                  setUserPhone('')
-                  setShowAccountDropdown(false)
-                  setView('HOME')
-                }}
-                className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg text-red-600"
-              >
-                Log Out
-              </button>
-            </div>
-            
-            <div className="border-t pt-4">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-xs">QR</span>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Simple way to get groceries</p>
-                  <p className="text-lg font-bold text-blue-600">in minutes</p>
-                  <p className="text-xs text-gray-500">Scan the QR code and download shopeasy app</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40">
+      <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 cursor-pointer" onClick={() => setView('HOME')}>
-                <div className="bg-yellow-400 text-black px-3 py-1 rounded font-bold text-xl">
-                  shopeasy
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-pink-600">ShopEasy</h1>
+            </div>
+
+            {/* Location */}
+            <div className="flex-1 max-w-md mx-4">
+              <button
+                onClick={() => setShowLocationModal(true)}
+                className="w-full text-left px-4 py-2 bg-gray-100 rounded-lg text-sm text-gray-600 hover:bg-gray-200"
+              >
+                <div className="flex items-center">
+                  <span className="mr-2">📍</span>
+                  <span className="truncate">{currentLocation}</span>
+                  <span className="ml-auto">▼</span>
                 </div>
-              </div>
-              <div className="hidden md:flex items-center space-x-1 text-sm text-gray-600">
-                <span>Delivery in 9 minutes</span>
-                <div 
-                  className="flex items-center space-x-1 cursor-pointer"
-                  onClick={() => setShowLocationModal(true)}
-                >
-                  <span className="font-semibold">{currentLocation}</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
+              </button>
             </div>
 
             {/* Search */}
-            <div className="flex-1 max-w-2xl mx-4 relative">
-              <div className="relative">
-                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input
-                  type="text"
-                  placeholder={`Search "${searchQuery || 'rice'}"`}
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  onFocus={() => {
-                    if (searchQuery.length > 2) {
-                      setShowSearchSuggestions(true)
-                    }
-                  }}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-100 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                />
-              </div>
-              
-              {/* Search Suggestions */}
-              {showSearchSuggestions && searchSuggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 mt-1">
+            <div className="flex-1 max-w-md mx-4 relative">
+              <input
+                type="text"
+                placeholder="Search for products..."
+                value={searchQuery}
+                onChange={(e) => handleSearchInput(e.target.value)}
+                className="w-full px-4 py-2 bg-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+              />
+              {showSearchSuggestions && (
+                <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                   {searchSuggestions.map((suggestion, index) => (
                     <button
                       key={index}
-                      onClick={() => handleSearchSuggestionClick(suggestion)}
-                      className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                      onClick={() => {
+                        setSearchQuery(suggestion)
+                        setShowSearchSuggestions(false)
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm"
                     >
                       {suggestion}
                     </button>
@@ -613,28 +361,82 @@ const App: React.FC = () => {
               )}
             </div>
 
-            {/* Right Section */}
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => isLoggedIn ? setShowAccountDropdown(true) : setShowLoginModal(true)}
-                className="flex items-center space-x-1 text-gray-600 hover:text-pink-600"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span className="hidden sm:inline">{isLoggedIn ? 'Account' : 'Login'}</span>
-              </button>
-              <button 
+            {/* Login/Account */}
+            <div className="relative">
+              {isLoggedIn ? (
+                <button
+                  onClick={() => setShowAccountDropdown(!showAccountDropdown)}
+                  className="px-4 py-2 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700"
+                >
+                  Account
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowLoginModal(true)}
+                  className="px-4 py-2 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700"
+                >
+                  Login
+                </button>
+              )}
+
+              {/* Account Dropdown */}
+              {showAccountDropdown && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  <div className="py-2">
+                    <div className="px-4 py-2 text-sm text-gray-600 border-b">
+                      +91 {userPhone}
+                    </div>
+                    <button
+                      onClick={() => handleAccountMenuClick('MY_ORDERS')}
+                      className="w-full text-left py-2 px-4 hover:bg-gray-50 text-sm"
+                    >
+                      My Orders
+                    </button>
+                    <button
+                      onClick={() => handleAccountMenuClick('SAVED_ADDRESSES')}
+                      className="w-full text-left py-2 px-4 hover:bg-gray-50 text-sm"
+                    >
+                      Saved Addresses
+                    </button>
+                    <button
+                      onClick={() => handleAccountMenuClick('E_GIFT_CARDS')}
+                      className="w-full text-left py-2 px-4 hover:bg-gray-50 text-sm"
+                    >
+                      E-Gift Cards
+                    </button>
+                    <button
+                      onClick={() => handleAccountMenuClick('FAQS')}
+                      className="w-full text-left py-2 px-4 hover:bg-gray-50 text-sm"
+                    >
+                      FAQs
+                    </button>
+                    <button
+                      onClick={() => handleAccountMenuClick('ACCOUNT_PRIVACY')}
+                      className="w-full text-left py-2 px-4 hover:bg-gray-50 text-sm"
+                    >
+                      Account &amp; Privacy
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left py-2 px-4 hover:bg-gray-50 text-red-600 text-sm"
+                    >
+                      Log Out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Cart */}
+            <div className="ml-4 relative">
+              <button
                 onClick={() => setView('CART')}
-                className="relative flex items-center space-x-2 bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700"
+                className="relative p-2 text-gray-600 hover:text-pink-600"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
-                </svg>
-                <span>Cart</span>
+                <span className="text-xl">🛒</span>
                 {cartItems.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-pink-400 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+                  <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {cartItems.reduce((total, item) => total + item.quantity, 0)}
                   </span>
                 )}
               </button>
@@ -645,29 +447,111 @@ const App: React.FC = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
-        {view === 'HOME' && (
-          <>
-            {/* Hero Banner */}
-            <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-2xl p-8 mb-8">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h1 className="text-4xl font-bold mb-4">Groceries delivered in 10 minutes</h1>
-                  <p className="text-xl mb-6">Get your essentials delivered to your doorstep faster than ever.</p>
-                  <button className="bg-white text-pink-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100">
-                    Start Shopping
+        {/* Login Modal */}
+        {showLoginModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-96">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Login</h2>
+                <button
+                  onClick={() => {
+                    setShowLoginModal(false)
+                    setPhoneNumber('')
+                    setOtp('')
+                    setShowOtpInput(false)
+                    setOtpError('')
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {!showOtpInput ? (
+                <div>
+                  <p className="text-gray-600 mb-4">Enter your phone number to receive OTP</p>
+                  <input
+                    type="tel"
+                    placeholder="Enter 10-digit mobile number"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
+                    maxLength={10}
+                  />
+                  <button
+                    onClick={handleSendOtp}
+                    disabled={isLoading || phoneNumber.length !== 10}
+                    className="w-full bg-pink-600 text-white py-2 rounded-lg hover:bg-pink-700 disabled:bg-gray-300"
+                  >
+                    {isLoading ? 'Sending...' : 'Send OTP'}
                   </button>
                 </div>
-                <div className="hidden md:block">
-                  <div className="w-64 h-48 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                    <span className="text-6xl">🛒</span>
-                  </div>
+              ) : (
+                <div>
+                  <p className="text-gray-600 mb-4">Enter the OTP sent to +91 {phoneNumber}</p>
+                  <input
+                    type="text"
+                    placeholder="Enter 6-digit OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
+                    maxLength={6}
+                  />
+                  {otpError && <p className="text-red-500 text-sm mb-4">{otpError}</p>}
+                  <button
+                    onClick={handleVerifyOtp}
+                    disabled={isLoading || otp.length !== 6}
+                    className="w-full bg-pink-600 text-white py-2 rounded-lg hover:bg-pink-700 disabled:bg-gray-300"
+                  >
+                    {isLoading ? 'Verifying...' : 'Verify OTP'}
+                  </button>
+                  <button
+                    onClick={() => setShowOtpInput(false)}
+                    className="w-full text-pink-600 py-2 mt-2"
+                  >
+                    Change Phone Number
+                  </button>
                 </div>
-              </div>
+              )}
             </div>
+          </div>
+        )}
 
+        {/* Location Modal */}
+        {showLocationModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-96">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Select Location</h2>
+                <button
+                  onClick={() => setShowLocationModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-gray-600 mb-4">Enter your delivery location</p>
+              <input
+                type="text"
+                placeholder="Enter your address"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
+              />
+              <button
+                onClick={() => setShowLocationModal(false)}
+                className="w-full bg-pink-600 text-white py-2 rounded-lg hover:bg-pink-700"
+              >
+                Confirm Location
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Home View */}
+        {view === 'HOME' && (
+          <div>
             {/* Categories */}
             <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-6">Shop by Category</h2>
+              <h2 className="text-xl font-bold mb-4">Categories</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
                 {categories.map((category) => (
                   <button
@@ -676,46 +560,54 @@ const App: React.FC = () => {
                       setSelectedCategory(category.name)
                       setView('CATEGORY')
                     }}
-                    className="flex flex-col items-center space-y-2 p-4 bg-white rounded-lg hover:shadow-md transition-shadow"
+                    className="text-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
                   >
-                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-2xl">
-                      {category.icon}
-                    </div>
-                    <span className="text-sm font-medium text-center">{category.name}</span>
+                    <div className="text-3xl mb-2">{category.icon}</div>
+                    <div className="text-sm font-medium text-gray-700">{category.name}</div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Featured Products */}
+            {/* Products */}
             <div>
-              <h2 className="text-2xl font-bold mb-6">Featured Products</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                {products.slice(0, 6).map((product) => (
-                  <div key={product.id} className="bg-white rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="relative mb-3">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-32 object-cover rounded-lg"
-                      />
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">
+                  {selectedCategory ? `${selectedCategory} Products` : 'All Products'}
+                </h2>
+                {selectedCategory && (
+                  <button
+                    onClick={() => setSelectedCategory('')}
+                    className="text-pink-600 hover:text-pink-700"
+                  >
+                    Clear Filter
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {filteredProducts.map((product) => (
+                  <div key={product.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-32 object-cover rounded-lg mb-3"
+                    />
+                    <h3 className="font-medium text-gray-900 mb-1">{product.name}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{product.unit}</p>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center">
+                        <span className="font-bold text-gray-900">₹{product.price}</span>
+                        {product.originalPrice && (
+                          <span className="text-sm text-gray-500 line-through ml-2">₹{product.originalPrice}</span>
+                        )}
+                      </div>
                       {product.discount && (
-                        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
-                          {product.discount}% OFF
-                        </div>
-                      )}
-                    </div>
-                    <h3 className="font-semibold text-sm mb-1 line-clamp-2">{product.name}</h3>
-                    <p className="text-xs text-gray-500 mb-2">{product.unit}</p>
-                    <div className="flex items-center space-x-2 mb-3">
-                      <span className="font-bold text-lg">₹{product.price}</span>
-                      {product.originalPrice && (
-                        <span className="text-gray-500 line-through text-sm">₹{product.originalPrice}</span>
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">{product.discount}% OFF</span>
                       )}
                     </div>
                     <button
                       onClick={() => addToCart(product)}
-                      className="w-full bg-pink-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-pink-700"
+                      className="w-full bg-pink-600 text-white py-2 rounded-lg text-sm hover:bg-pink-700"
                     >
                       Add to Cart
                     </button>
@@ -723,9 +615,10 @@ const App: React.FC = () => {
                 ))}
               </div>
             </div>
-          </>
+          </div>
         )}
 
+        {/* Category View */}
         {view === 'CATEGORY' && (
           <div>
             <div className="flex items-center mb-6">
@@ -737,32 +630,30 @@ const App: React.FC = () => {
               </button>
               <h1 className="text-2xl font-bold">{selectedCategory}</h1>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {filteredProducts.map((product) => (
-                <div key={product.id} className="bg-white rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="relative mb-3">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
+                <div key={product.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-32 object-cover rounded-lg mb-3"
+                  />
+                  <h3 className="font-medium text-gray-900 mb-1">{product.name}</h3>
+                  <p className="text-sm text-gray-600 mb-2">{product.unit}</p>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center">
+                      <span className="font-bold text-gray-900">₹{product.price}</span>
+                      {product.originalPrice && (
+                        <span className="text-sm text-gray-500 line-through ml-2">₹{product.originalPrice}</span>
+                      )}
+                    </div>
                     {product.discount && (
-                      <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
-                        {product.discount}% OFF
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="font-semibold text-sm mb-1 line-clamp-2">{product.name}</h3>
-                  <p className="text-xs text-gray-500 mb-2">{product.unit}</p>
-                  <div className="flex items-center space-x-2 mb-3">
-                    <span className="font-bold text-lg">₹{product.price}</span>
-                    {product.originalPrice && (
-                      <span className="text-gray-500 line-through text-sm">₹{product.originalPrice}</span>
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">{product.discount}% OFF</span>
                     )}
                   </div>
                   <button
                     onClick={() => addToCart(product)}
-                    className="w-full bg-pink-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-pink-700"
+                    className="w-full bg-pink-600 text-white py-2 rounded-lg text-sm hover:bg-pink-700"
                   >
                     Add to Cart
                   </button>
@@ -772,6 +663,7 @@ const App: React.FC = () => {
           </div>
         )}
 
+        {/* Cart View */}
         {view === 'CART' && (
           <div>
             <div className="flex items-center mb-6">
@@ -781,55 +673,60 @@ const App: React.FC = () => {
               >
                 ← Back to Home
               </button>
-              <h1 className="text-2xl font-bold">My Cart</h1>
+              <h1 className="text-2xl font-bold">Shopping Cart</h1>
             </div>
+            
             {cartItems.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">🛒</div>
-                <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
-                <p className="text-gray-600 mb-6">Add items to get started</p>
+                <h3 className="text-xl font-bold mb-2">Your cart is empty</h3>
+                <p className="text-gray-600 mb-6">Add some products to get started!</p>
                 <button
                   onClick={() => setView('HOME')}
-                  className="bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700"
+                  className="bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700"
                 >
                   Start Shopping
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
-                  <div className="bg-white rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h2 className="text-xl font-bold">Delivery in 9 minutes</h2>
-                        <p className="text-gray-600">Shipment of {cartItems.length} items</p>
-                      </div>
-                    </div>
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <h3 className="text-lg font-bold mb-4">Cart Items</h3>
                     <div className="space-y-4">
                       {cartItems.map((item) => (
-                        <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                        <div key={item.id} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
                           <img
                             src={item.image}
                             alt={item.name}
                             className="w-16 h-16 object-cover rounded-lg"
                           />
                           <div className="flex-1">
-                            <h3 className="font-semibold">{item.name}</h3>
+                            <h4 className="font-medium">{item.name}</h4>
                             <p className="text-gray-600">₹{item.price}</p>
                           </div>
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
-                              className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center hover:bg-green-700"
+                              className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300"
                             >
                               -
                             </button>
                             <span className="w-8 text-center">{item.quantity}</span>
                             <button
                               onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
-                              className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center hover:bg-green-700"
+                              className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300"
                             >
                               +
+                            </button>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium">₹{item.price * item.quantity}</p>
+                            <button
+                              onClick={() => removeFromCart(item.id)}
+                              className="text-red-500 text-sm hover:text-red-700"
+                            >
+                              Remove
                             </button>
                           </div>
                         </div>
@@ -837,34 +734,34 @@ const App: React.FC = () => {
                     </div>
                   </div>
                 </div>
+                
                 <div className="lg:col-span-1">
-                  <div className="bg-white rounded-lg p-6 sticky top-24">
-                    <h2 className="text-xl font-bold mb-4">Bill details</h2>
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <h3 className="text-lg font-bold mb-4">Order Summary</h3>
                     <div className="space-y-2 mb-4">
                       <div className="flex justify-between">
-                        <span>Items total</span>
-                        <span>₹{getCartTotal()}</span>
+                        <span>Subtotal</span>
+                        <span>₹{cartTotal}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Delivery charge</span>
-                        <span>₹25</span>
+                        <span>Delivery Fee</span>
+                        <span>₹40</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Handling charge</span>
-                        <span>₹2</span>
+                        <span>Handling Fee</span>
+                        <span>₹10</span>
                       </div>
-                      <div className="border-t pt-2">
-                        <div className="flex justify-between font-bold text-lg">
-                          <span>Grand total</span>
-                          <span>₹{getCartTotal() + 27}</span>
-                        </div>
+                      <hr className="my-2" />
+                      <div className="flex justify-between font-bold">
+                        <span>Total</span>
+                        <span>₹{cartTotal + 50}</span>
                       </div>
                     </div>
                     <button
-                      onClick={() => setShowAddressInput(true)}
-                      className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700"
+                      onClick={() => setView('CHECKOUT')}
+                      className="w-full bg-pink-600 text-white py-3 rounded-lg hover:bg-pink-700"
                     >
-                      Proceed &gt;
+                      Proceed to Checkout
                     </button>
                   </div>
                 </div>
@@ -873,7 +770,89 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* Account Menu Pages */}
+        {/* Checkout View */}
+        {view === 'CHECKOUT' && (
+          <div>
+            <div className="flex items-center mb-6">
+              <button
+                onClick={() => setView('CART')}
+                className="text-gray-600 hover:text-pink-600 mr-4"
+              >
+                ← Back to Cart
+              </button>
+              <h1 className="text-2xl font-bold">Checkout</h1>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                  <h3 className="text-lg font-bold mb-4">Delivery Address</h3>
+                  <button
+                    onClick={() => setShowAddressInput(true)}
+                    className="w-full border-2 border-dashed border-gray-300 p-6 text-center text-gray-600 hover:border-pink-500 hover:text-pink-500"
+                  >
+                    + Add New Address
+                  </button>
+                </div>
+                
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                  <h3 className="text-lg font-bold mb-4">Payment Method</h3>
+                  <div className="space-y-3">
+                    <label className="flex items-center">
+                      <input type="radio" name="payment" value="cod" defaultChecked className="mr-3" />
+                      <span>Cash on Delivery</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input type="radio" name="payment" value="upi" className="mr-3" />
+                      <span>UPI</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input type="radio" name="payment" value="card" className="mr-3" />
+                      <span>Credit/Debit Card</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                  <h3 className="text-lg font-bold mb-4">Order Summary</h3>
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between">
+                      <span>Subtotal</span>
+                      <span>₹{cartTotal}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Delivery Fee</span>
+                      <span>₹40</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Handling Fee</span>
+                      <span>₹10</span>
+                    </div>
+                    <hr className="my-2" />
+                    <div className="flex justify-between font-bold">
+                      <span>Total</span>
+                      <span>₹{cartTotal + 50}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      alert('Order placed successfully!')
+                      setCartItems([])
+                      setView('HOME')
+                    }}
+                    className="w-full bg-pink-600 text-white py-3 rounded-lg hover:bg-pink-700"
+                  >
+                    Place Order
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Account Menu Views */}
         {view === 'MY_ORDERS' && (
           <div>
             <div className="flex items-center mb-6">
@@ -886,7 +865,7 @@ const App: React.FC = () => {
               <h1 className="text-2xl font-bold">My Orders</h1>
             </div>
             <div className="bg-white rounded-lg p-6">
-              <p className="text-gray-600">No orders found. Start shopping to see your orders here!</p>
+              <p className="text-gray-600">No orders yet. Start shopping!</p>
             </div>
           </div>
         )}
@@ -903,7 +882,7 @@ const App: React.FC = () => {
               <h1 className="text-2xl font-bold">Saved Addresses</h1>
             </div>
             <div className="bg-white rounded-lg p-6">
-              <p className="text-gray-600">No saved addresses. Add an address during checkout!</p>
+              <p className="text-gray-600">No saved addresses yet.</p>
             </div>
           </div>
         )}
