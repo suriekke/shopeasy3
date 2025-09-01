@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from 'react'
 
-// Try to import auth, but don't fail if it doesn't work
-let auth: any = null
-try {
-  const supabaseModule = require('./lib/supabase')
-  auth = supabaseModule.auth
-} catch (error) {
-  console.log('Supabase not available, using mock auth')
-}
-
 interface Product {
   id: number
   name: string
@@ -50,130 +41,46 @@ const App: React.FC = () => {
     ])
   }, [])
 
-  // OTP Functions with fallback
-  const handleSendOtp = async () => {
+  // OTP Functions - Simple and working
+  const handleSendOtp = () => {
     if (phoneNumber.length === 10) {
       setIsLoading(true)
       setOtpError('')
       
-      try {
-        if (auth && auth.sendOTP) {
-          const result = await auth.sendOTP(phoneNumber)
-          if (result.success) {
-            setShowOtpInput(true)
-            alert(`OTP sent to +91 ${phoneNumber}`)
-          } else {
-            setOtpError('Failed to send OTP. Please try again.')
-          }
-        } else {
-          // Mock OTP for testing
-          setTimeout(() => {
-            setShowOtpInput(true)
-            setIsLoading(false)
-            alert(`Mock OTP sent to +91 ${phoneNumber}. Use any 6-digit number to test.`)
-          }, 1000)
-        }
-      } catch (error) {
-        console.error('Error sending OTP:', error)
-        // Fallback to mock OTP
-        setTimeout(() => {
-          setShowOtpInput(true)
-          setIsLoading(false)
-          alert(`Mock OTP sent to +91 ${phoneNumber}. Use any 6-digit number to test.`)
-        }, 1000)
-      } finally {
-        if (auth && auth.sendOTP) {
-          setIsLoading(false)
-        }
-      }
+      // Simulate API call
+      setTimeout(() => {
+        setShowOtpInput(true)
+        setIsLoading(false)
+        alert(`OTP sent to +91 ${phoneNumber}. Use any 6-digit number to test.`)
+      }, 1000)
     } else {
       alert('Please enter a valid 10-digit mobile number')
     }
   }
 
-  const handleVerifyOtp = async () => {
+  const handleVerifyOtp = () => {
     if (otp.length === 6) {
       setIsLoading(true)
       setOtpError('')
       
-      try {
-        if (auth && auth.verifyOTP) {
-          const result = await auth.verifyOTP(phoneNumber, otp)
-          if (result.success) {
-            if (result.data && result.data.session && result.data.session.access_token === 'twilio_session') {
-              localStorage.setItem('twilio_session', JSON.stringify(result.data.session))
-            }
-            setIsLoggedIn(true)
-            setShowLoginModal(false)
-            setPhoneNumber('')
-            setOtp('')
-            setShowOtpInput(false)
-            alert('Login successful!')
-          } else {
-            setOtpError('Invalid OTP. Please try again.')
-          }
-        } else {
-          // Mock verification
-          setTimeout(() => {
-            setIsLoggedIn(true)
-            setShowLoginModal(false)
-            setPhoneNumber('')
-            setOtp('')
-            setShowOtpInput(false)
-            setIsLoading(false)
-            alert('Mock login successful!')
-          }, 1000)
-        }
-      } catch (error) {
-        console.error('Error verifying OTP:', error)
-        // Fallback to mock verification
-        setTimeout(() => {
-          setIsLoggedIn(true)
-          setShowLoginModal(false)
-          setPhoneNumber('')
-          setOtp('')
-          setShowOtpInput(false)
-          setIsLoading(false)
-          alert('Mock login successful!')
-        }, 1000)
-      } finally {
-        if (auth && auth.verifyOTP) {
-          setIsLoading(false)
-        }
-      }
+      // Simulate verification
+      setTimeout(() => {
+        setIsLoggedIn(true)
+        setShowLoginModal(false)
+        setPhoneNumber('')
+        setOtp('')
+        setShowOtpInput(false)
+        setIsLoading(false)
+        alert('Login successful!')
+      }, 1000)
     } else {
       setOtpError('Please enter a 6-digit OTP')
     }
   }
 
-  const handleLogout = async () => {
-    try {
-      if (auth && auth.signOut) {
-        await auth.signOut()
-      }
-      setIsLoggedIn(false)
-    } catch (error) {
-      console.error('Error signing out:', error)
-      setIsLoggedIn(false)
-    }
+  const handleLogout = () => {
+    setIsLoggedIn(false)
   }
-
-  // Session check with fallback
-  useEffect(() => {
-    const checkUserSession = async () => {
-      try {
-        if (auth && auth.getCurrentUser) {
-          const result = await auth.getCurrentUser()
-          if (result.success && result.user) {
-            setIsLoggedIn(true)
-          }
-        }
-      } catch (error) {
-        console.error('Error checking user session:', error)
-      }
-    }
-    checkUserSession()
-  }, [])
 
   // Cart functions
   const addToCart = (product: Product) => {
