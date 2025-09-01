@@ -5,6 +5,11 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+// Twilio Configuration - Use environment variables only
+const TWILIO_ACCOUNT_SID = import.meta.env.VITE_TWILIO_ACCOUNT_SID || ''
+const TWILIO_AUTH_TOKEN = import.meta.env.VITE_TWILIO_AUTH_TOKEN || ''
+const TWILIO_VERIFY_SERVICE_SID = import.meta.env.VITE_TWILIO_VERIFY_SERVICE_SID || ''
+
 // Database types
 export interface Product {
   id: string
@@ -93,55 +98,157 @@ export interface OrderItem {
   created_at: string
 }
 
+// Twilio OTP functions
+const sendTwilioOTP = async (phoneNumber: string) => {
+  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_VERIFY_SERVICE_SID) {
+    throw new Error('Twilio credentials not configured')
+  }
+
+  const url = `https://verify.twilio.com/v2/Services/${TWILIO_VERIFY_SERVICE_SID}/Verifications`
+  const body = new URLSearchParams({
+    'To': `+91${phoneNumber}`,
+    'Channel': 'sms'
+  })
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`)}`,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: body.toString()
+  })
+
+  const data = await response.json()
+  
+  if (response.ok) {
+    return { success: true, data }
+  } else {
+    throw new Error(data.message || 'Failed to send OTP')
+  }
+}
+
+const verifyTwilioOTP = async (phoneNumber: string, code: string) => {
+  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_VERIFY_SERVICE_SID) {
+    throw new Error('Twilio credentials not configured')
+  }
+
+  const url = `https://verify.twilio.com/v2/Services/${TWILIO_VERIFY_SERVICE_SID}/VerificationCheck`
+  const body = new URLSearchParams({
+    'To': `+91${phoneNumber}`,
+    'Code': code
+  })
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`)}`,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: body.toString()
+  })
+
+  const data = await response.json()
+  
+  if (response.ok && data.status === 'approved') {
+    return { success: true, data }
+  } else {
+    throw new Error(data.message || 'Invalid OTP')
+  }
+}
+
 // Auth helper functions
 export const auth = {
-  // Send OTP to phone number
+  // Send OTP to phone number using Twilio
   async sendOTP(phoneNumber: string) {
     try {
-      const { data, error } = await supabase.auth.signInWithOtp({
-        phone: `+91${phoneNumber}`,
-        options: {
-          shouldCreateUser: true,
-          data: {
-            phone_number: phoneNumber
-          }
-        }
-      })
+      // First try Twilio
+      const twilioResult = await sendTwilioOTP(phoneNumber)
       
-      if (error) {
-        throw error
+      if (twilioResult.success) {
+        return { success: true, data: twilioResult.data }
       }
-      
-      return { success: true, data }
     } catch (error) {
-      console.error('Error sending OTP:', error)
-      return { success: false, error }
+      console.error('Twilio OTP failed, falling back to Supabase:', error)
+      
+      // Fallback to Supabase
+      try {
+        const { data, error } = await supabase.auth.signInWithOtp({
+          phone: `+91${phoneNumber}`,
+          options: {
+            shouldCreateUser: true,
+            data: {
+              phone_number: phoneNumber
+            }
+          }
+        })
+        
+        if (error) {
+          throw error
+        }
+        
+        return { success: true, data }
+      } catch (supabaseError) {
+        console.error('Supabase OTP also failed:', supabaseError)
+        throw error // Throw the original Twilio error
+      }
     }
   },
 
-  // Verify OTP
+  // Verify OTP using Twilio
   async verifyOTP(phoneNumber: string, token: string) {
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        phone: `+91${phoneNumber}`,
-        token: token,
-        type: 'sms'
-      })
+      // First try Twilio
+      const twilioResult = await verifyTwilioOTP(phoneNumber, token)
       
-      if (error) {
-        throw error
+      if (twilioResult.success) {
+        // Create user session manually since we're using Twilio
+        const session = {
+          user: {
+            id: `twilio_${phoneNumber}`,
+            phone: phoneNumber,
+            created_at: new Date().toISOString()
+          },
+          access_token: 'twilio_session',
+          refresh_token: 'twilio_refresh'
+        }
+        
+        return { success: true, data: { session, user: session.user } }
       }
-      
-      return { success: true, data }
     } catch (error) {
-      console.error('Error verifying OTP:', error)
-      return { success: false, error }
+      console.error('Twilio verification failed, falling back to Supabase:', error)
+      
+      // Fallback to Supabase
+      try {
+        const { data, error } = await supabase.auth.verifyOtp({
+          phone: `+91${phoneNumber}`,
+          token: token,
+          type: 'sms'
+        })
+        
+        if (error) {
+          throw error
+        }
+        
+        return { success: true, data }
+      } catch (supabaseError) {
+        console.error('Supabase verification also failed:', supabaseError)
+        throw error // Throw the original Twilio error
+      }
     }
   },
 
   // Get current user
   async getCurrentUser() {
     try {
+      // Check if we have a Twilio session
+      const twilioSession = localStorage.getItem('twilio_session')
+      if (twilioSession) {
+        const session = JSON.parse(twilioSession)
+        return { success: true, user: session.user }
+      }
+      
+      // Fallback to Supabase
       const { data: { user }, error } = await supabase.auth.getUser()
       
       if (error) {
@@ -158,6 +265,10 @@ export const auth = {
   // Sign out
   async signOut() {
     try {
+      // Clear Twilio session
+      localStorage.removeItem('twilio_session')
+      
+      // Also sign out from Supabase
       const { error } = await supabase.auth.signOut()
       
       if (error) {
