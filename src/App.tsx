@@ -264,6 +264,30 @@ const App: React.FC = () => {
         image: 'https://images.unsplash.com/photo-1549007994-cb92aebf54f1?w=400&h=300&fit=crop',
         unit: '80 g',
         discount: 17
+      },
+      {
+        id: 9,
+        name: 'Basmati Rice',
+        description: 'Premium basmati rice',
+        price: 80,
+        originalPrice: 100,
+        stock: 30,
+        category: 'Staples',
+        image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop',
+        unit: '1 kg',
+        discount: 20
+      },
+      {
+        id: 10,
+        name: 'Toor Dal',
+        description: 'Fresh toor dal',
+        price: 120,
+        originalPrice: 140,
+        stock: 25,
+        category: 'Staples',
+        image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop',
+        unit: '1 kg',
+        discount: 14
       }
     ])
   }, [])
