@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { supabase } from './lib/supabase'
 
-// Simple types that work with the existing components
+// Simple types
 interface Product {
   id: number
   name: string
@@ -11,9 +10,6 @@ interface Product {
   stock: number
   category: string
   image: string
-  images?: string[]
-  details?: string[]
-  reviews?: any[]
 }
 
 interface CartItem {
@@ -25,104 +21,72 @@ interface CartItem {
   image: string
 }
 
-interface User {
-  id: string
-  email: string
-  full_name?: string
-  name?: string
-  role: 'admin' | 'customer'
-  phone?: string
-  phoneNumber?: string
-  avatar?: string
-}
-
 const App: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([])
   const [cartItems, setCartItems] = useState<CartItem[]>([])
-  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Load data from Supabase
+  // Load sample data
   useEffect(() => {
-    loadProducts()
-    loadUser()
-  }, [])
-
-  const loadProducts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      
-      // Transform data to match component expectations
-      const transformedProducts = (data || []).map(product => ({
-        ...product,
-        image: product.image_url || '/placeholder-product.jpg',
-        images: product.image_url ? [product.image_url] : []
-      }))
-      
-      setProducts(transformedProducts)
-    } catch (error) {
-      console.error('Error loading products:', error)
-      // Fallback to sample data that matches the original UI
-      setProducts([
-        {
-          id: 1,
-          name: 'Fresh Strawberries',
-          description: 'Sweet and juicy strawberries',
-          price: 4.99,
-          stock: 50,
-          category: 'Fruits & Vegetables',
-          image: '/strawberries.jpg'
-        },
-        {
-          id: 2,
-          name: 'Organic Honey',
-          description: 'Pure organic honey',
-          price: 8.99,
-          stock: 25,
-          category: 'Atta, Rice, Oil & Dals',
-          image: '/honey.jpg'
-        },
-        {
-          id: 3,
-          name: 'Premium Coffee',
-          description: 'Rich and aromatic coffee',
-          price: 12.99,
-          stock: 30,
-          category: 'Zepto Cafe',
-          image: '/coffee.jpg'
-        }
-      ])
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const loadUser = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: profile } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.id)
-          .single()
-        
-        setUser({ 
-          ...user, 
-          ...profile,
-          name: profile?.full_name || user.email?.split('@')[0] || 'User'
-        })
+    // Sample data that matches the original UI
+    setProducts([
+      {
+        id: 1,
+        name: 'Fresh Strawberries',
+        description: 'Sweet and juicy strawberries',
+        price: 4.99,
+        stock: 50,
+        category: 'Fruits & Vegetables',
+        image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=400&h=300&fit=crop'
+      },
+      {
+        id: 2,
+        name: 'Organic Honey',
+        description: 'Pure organic honey',
+        price: 8.99,
+        stock: 25,
+        category: 'Atta, Rice, Oil & Dals',
+        image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop'
+      },
+      {
+        id: 3,
+        name: 'Premium Coffee',
+        description: 'Rich and aromatic coffee',
+        price: 12.99,
+        stock: 30,
+        category: 'Zepto Cafe',
+        image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&h=300&fit=crop'
+      },
+      {
+        id: 4,
+        name: 'Fresh Milk',
+        description: 'Farm fresh whole milk',
+        price: 3.99,
+        stock: 40,
+        category: 'Dairy & Eggs',
+        image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop'
+      },
+      {
+        id: 5,
+        name: 'Whole Grain Bread',
+        description: 'Healthy whole grain bread',
+        price: 2.99,
+        stock: 35,
+        category: 'Bakery',
+        image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=300&fit=crop'
+      },
+      {
+        id: 6,
+        name: 'Organic Bananas',
+        description: 'Sweet organic bananas',
+        price: 1.99,
+        stock: 60,
+        category: 'Fruits & Vegetables',
+        image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=300&fit=crop'
       }
-    } catch (error) {
-      console.error('Error loading user:', error)
-    }
-  }
+    ])
+    setLoading(false)
+  }, [])
 
   const addToCart = (product: Product) => {
     setCartItems(prev => {
@@ -160,7 +124,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        {/* Header - Using original design */}
+        {/* Header - Original design */}
         <header className="bg-white shadow-sm sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between flex-wrap md:flex-nowrap gap-y-3 gap-x-4">
             {/* Left Section */}
@@ -211,7 +175,7 @@ const App: React.FC = () => {
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span>{user ? 'Profile' : 'Login'}</span>
+                <span>Login</span>
               </button>
               <button className="relative flex items-center bg-gradient-to-r from-pink-500 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-pink-600 hover:to-pink-700 transition-all duration-200">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -241,7 +205,9 @@ const App: React.FC = () => {
                       </button>
                     </div>
                     <div className="hidden md:block">
-                      <img src="/banner-image.jpg" alt="Fresh groceries" className="w-64 h-48 object-cover rounded-lg" />
+                      <div className="w-64 h-48 bg-green-200 rounded-lg flex items-center justify-center">
+                        <span className="text-4xl">🛒</span>
+                      </div>
                     </div>
                   </div>
                 </div>
