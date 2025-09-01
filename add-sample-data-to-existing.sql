@@ -1,69 +1,16 @@
--- ShopEasy Customer App Database Schema and Sample Data
+-- Add Sample Data to Existing Tables
 -- Run this in your GitHub-linked Supabase project SQL Editor
 
--- Enable necessary extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- Create custom types (only if they don't exist)
-DO $$ BEGIN
-    CREATE TYPE order_status AS ENUM ('pending', 'confirmed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE payment_method AS ENUM ('cod', 'upi', 'card', 'wallet');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
--- Categories table
-CREATE TABLE IF NOT EXISTS public.categories (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE,
-    description TEXT,
-    icon TEXT,
-    image_url TEXT,
-    is_active BOOLEAN DEFAULT true,
-    sort_order INTEGER DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Products table
-CREATE TABLE IF NOT EXISTS public.products (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    name TEXT NOT NULL,
-    description TEXT,
-    price DECIMAL(10,2) NOT NULL,
-    original_price DECIMAL(10,2),
-    stock_quantity INTEGER NOT NULL DEFAULT 0,
-    category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
-    image_url TEXT,
-    unit TEXT,
-    discount_percentage INTEGER DEFAULT 0,
-    is_active BOOLEAN DEFAULT true,
-    is_featured BOOLEAN DEFAULT false,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Add sample categories
-INSERT INTO categories (name, description, icon, image_url, sort_order) VALUES
-('Fruits & Vegetables', 'Fresh fruits and vegetables', '🥬', 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=300&fit=crop', 1),
-('Dairy & Bakery', 'Milk, bread, and dairy products', '🥛', 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop', 2),
-('Staples', 'Rice, dal, oil, and basic groceries', '🍚', 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop', 3),
-('Snacks & Branded Foods', 'Chips, biscuits, and packaged foods', '🍿', 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop', 4),
-('Beverages', 'Tea, coffee, juices, and soft drinks', '🥤', 'https://images.unsplash.com/photo-1546173159-315724a31696?w=400&h=300&fit=crop', 5),
-('Personal Care', 'Soaps, shampoos, and personal hygiene', '🧴', 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=300&fit=crop', 6),
-('Home Care', 'Cleaning supplies and household items', '🧽', 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400&h=300&fit=crop', 7),
-('Baby Care', 'Baby food, diapers, and baby products', '👶', 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', 8)
+-- Add sample categories (without icon column)
+INSERT INTO categories (name, description, image_url, sort_order) VALUES
+('Fruits & Vegetables', 'Fresh fruits and vegetables', 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=300&fit=crop', 1),
+('Dairy & Bakery', 'Milk, bread, and dairy products', 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop', 2),
+('Staples', 'Rice, dal, oil, and basic groceries', 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop', 3),
+('Snacks & Branded Foods', 'Chips, biscuits, and packaged foods', 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop', 4),
+('Beverages', 'Tea, coffee, juices, and soft drinks', 'https://images.unsplash.com/photo-1546173159-315724a31696?w=400&h=300&fit=crop', 5),
+('Personal Care', 'Soaps, shampoos, and personal hygiene', 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=300&fit=crop', 6),
+('Home Care', 'Cleaning supplies and household items', 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400&h=300&fit=crop', 7),
+('Baby Care', 'Baby food, diapers, and baby products', 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', 8)
 ON CONFLICT (name) DO NOTHING;
 
 -- Add sample products
