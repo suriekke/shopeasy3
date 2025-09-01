@@ -83,7 +83,7 @@ const App: React.FC = () => {
     ).slice(0, 5)
   }
 
-  // Real Supabase auth functions
+  // Real Supabase auth functions with Twilio integration
   const handleSendOtp = async () => {
     if (phoneNumber.length === 10) {
       setIsLoading(true)
@@ -118,6 +118,11 @@ const App: React.FC = () => {
         const result = await auth.verifyOTP(phoneNumber, otp)
         
         if (result.success) {
+          // Store session if it's a Twilio session
+          if (result.data && result.data.session && result.data.session.access_token === 'twilio_session') {
+            localStorage.setItem('twilio_session', JSON.stringify(result.data.session))
+          }
+          
           setIsLoggedIn(true)
           setUserPhone(phoneNumber)
           setShowLoginModal(false)
