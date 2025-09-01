@@ -1,5 +1,44 @@
--- Add Sample Data to Existing Tables
+-- ShopEasy Customer App Database Schema and Sample Data
 -- Run this in your GitHub-linked Supabase project SQL Editor
+
+-- Enable necessary extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Create custom types
+CREATE TYPE order_status AS ENUM ('pending', 'confirmed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled');
+CREATE TYPE payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
+CREATE TYPE payment_method AS ENUM ('cod', 'upi', 'card', 'wallet');
+
+-- Categories table
+CREATE TABLE IF NOT EXISTS public.categories (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT,
+    icon TEXT,
+    image_url TEXT,
+    is_active BOOLEAN DEFAULT true,
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Products table
+CREATE TABLE IF NOT EXISTS public.products (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    price DECIMAL(10,2) NOT NULL,
+    original_price DECIMAL(10,2),
+    stock_quantity INTEGER NOT NULL DEFAULT 0,
+    category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
+    image_url TEXT,
+    unit TEXT,
+    discount_percentage INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
+    is_featured BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
 -- Add sample categories
 INSERT INTO categories (name, description, icon, image_url, sort_order) VALUES
