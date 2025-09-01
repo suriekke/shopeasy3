@@ -35,7 +35,7 @@ INSERT INTO products (name, description, price, original_price, stock_quantity, 
 ('Salt', 'Iodized salt', 15.00, 20.00, 50, (SELECT id FROM categories WHERE name = 'Staples'), 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop', '1 kg', 25, false),
 
 -- Snacks & Branded Foods
-('Lay\'s Classic', 'Classic potato chips', 20.00, 25.00, 60, (SELECT id FROM categories WHERE name = 'Snacks & Branded Foods'), 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop', '30 g', 20, true),
+('Lays Classic', 'Classic potato chips', 20.00, 25.00, 60, (SELECT id FROM categories WHERE name = 'Snacks & Branded Foods'), 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop', '30 g', 20, true),
 ('Parle-G Biscuits', 'Glucose biscuits', 10.00, 12.00, 100, (SELECT id FROM categories WHERE name = 'Snacks & Branded Foods'), 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop', '100 g', 17, true),
 ('Cadbury Dairy Milk', 'Chocolate bar', 50.00, 60.00, 40, (SELECT id FROM categories WHERE name = 'Snacks & Branded Foods'), 'https://images.unsplash.com/photo-1549007994-cb92aebf54f1?w=400&h=300&fit=crop', '80 g', 17, true),
 ('Kurkure', 'Spicy snack', 15.00, 20.00, 45, (SELECT id FROM categories WHERE name = 'Snacks & Branded Foods'), 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop', '60 g', 25, false),
@@ -49,9 +49,9 @@ INSERT INTO products (name, description, price, original_price, stock_quantity, 
 
 -- Personal Care
 ('Dove Soap', 'Moisturizing soap bar', 25.00, 35.00, 40, (SELECT id FROM categories WHERE name = 'Personal Care'), 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=300&fit=crop', '75 g', 29, true),
-('Head & Shoulders Shampoo', 'Anti-dandruff shampoo', 180.00, 220.00, 20, (SELECT id FROM categories WHERE name = 'Personal Care'), 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=300&fit=crop', '180 ml', 18, true),
+('Head and Shoulders Shampoo', 'Anti-dandruff shampoo', 180.00, 220.00, 20, (SELECT id FROM categories WHERE name = 'Personal Care'), 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=300&fit=crop', '180 ml', 18, true),
 ('Colgate Toothpaste', 'Fresh mint toothpaste', 45.00, 55.00, 35, (SELECT id FROM categories WHERE name = 'Personal Care'), 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=300&fit=crop', '100 g', 18, false),
-('Gillette Razor', 'Men\'s razor blades', 120.00, 150.00, 15, (SELECT id FROM categories WHERE name = 'Personal Care'), 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=300&fit=crop', '4 blades', 20, false),
+('Gillette Razor', 'Mens razor blades', 120.00, 150.00, 15, (SELECT id FROM categories WHERE name = 'Personal Care'), 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=300&fit=crop', '4 blades', 20, false),
 
 -- Home Care
 ('Surf Excel Liquid', 'Laundry detergent', 85.00, 105.00, 25, (SELECT id FROM categories WHERE name = 'Home Care'), 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400&h=300&fit=crop', '1 L', 19, true),
@@ -62,7 +62,7 @@ INSERT INTO products (name, description, price, original_price, stock_quantity, 
 -- Baby Care
 ('Pampers Diapers', 'Baby diapers', 450.00, 550.00, 20, (SELECT id FROM categories WHERE name = 'Baby Care'), 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', '30 pieces', 18, true),
 ('Cerelac Baby Food', 'Infant cereal', 120.00, 150.00, 25, (SELECT id FROM categories WHERE name = 'Baby Care'), 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', '300 g', 20, true),
-('Johnson\'s Baby Soap', 'Gentle baby soap', 35.00, 45.00, 30, (SELECT id FROM categories WHERE name = 'Baby Care'), 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', '75 g', 22, false),
+('Johnsons Baby Soap', 'Gentle baby soap', 35.00, 45.00, 30, (SELECT id FROM categories WHERE name = 'Baby Care'), 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', '75 g', 22, false),
 ('Baby Oil', 'Baby massage oil', 85.00, 110.00, 15, (SELECT id FROM categories WHERE name = 'Baby Care'), 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', '200 ml', 23, false)
 ON CONFLICT (name) DO NOTHING;
 
