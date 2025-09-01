@@ -46,38 +46,6 @@ BEGIN
     END IF;
 END $$;
 
--- Drop custom types if they exist
-DO $$ 
-BEGIN
-    IF EXISTS (SELECT FROM pg_type WHERE typname = 'order_status') THEN
-        DROP TYPE order_status CASCADE;
-    END IF;
-    
-    IF EXISTS (SELECT FROM pg_type WHERE typname = 'payment_status') THEN
-        DROP TYPE payment_status CASCADE;
-    END IF;
-    
-    IF EXISTS (SELECT FROM pg_type WHERE typname = 'payment_method') THEN
-        DROP TYPE payment_method CASCADE;
-    END IF;
-END $$;
-
--- Drop functions if they exist
-DO $$ 
-BEGIN
-    IF EXISTS (SELECT FROM pg_proc WHERE proname = 'generate_order_number') THEN
-        DROP FUNCTION generate_order_number() CASCADE;
-    END IF;
-    
-    IF EXISTS (SELECT FROM pg_proc WHERE proname = 'update_updated_at_column') THEN
-        DROP FUNCTION update_updated_at_column() CASCADE;
-    END IF;
-    
-    IF EXISTS (SELECT FROM pg_proc WHERE proname = 'handle_new_user') THEN
-        DROP FUNCTION handle_new_user() CASCADE;
-    END IF;
-END $$;
-
 -- Verify all tables are deleted
 SELECT 'Tables remaining in public schema after deletion:' as message;
 SELECT table_name 
