@@ -29,7 +29,7 @@ interface Category {
   image: string
 }
 
-type View = 'HOME' | 'LOGIN' | 'CATEGORY' | 'PRODUCT_DETAIL' | 'CART' | 'CHECKOUT' | 'PROFILE' | 'ORDERS'
+type View = 'HOME' | 'LOGIN' | 'CATEGORY' | 'PRODUCT_DETAIL' | 'CART' | 'CHECKOUT' | 'PROFILE' | 'ORDERS' | 'LOCATION_MODAL' | 'ACCOUNT_DROPDOWN' | 'ADDRESS_INPUT'
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>('HOME')
@@ -42,6 +42,12 @@ const App: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('')
   const [showOtpInput, setShowOtpInput] = useState(false)
   const [otp, setOtp] = useState('')
+  const [showLocationModal, setShowLocationModal] = useState(false)
+  const [showAccountDropdown, setShowAccountDropdown] = useState(false)
+  const [showAddressInput, setShowAddressInput] = useState(false)
+  const [currentLocation, setCurrentLocation] = useState('B.N Reddy Nagar, Hyderabad')
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([])
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false)
 
   // Sample data - Blinkit style
   const categories: Category[] = [
@@ -54,6 +60,24 @@ const App: React.FC = () => {
     { id: 7, name: 'Home Care', icon: '🧽', image: 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400&h=300&fit=crop' },
     { id: 8, name: 'Baby Care', icon: '👶', image: 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop' }
   ]
+
+  // Search suggestions based on query
+  const getSearchSuggestions = (query: string) => {
+    if (!query) return []
+    
+    const suggestions = [
+      'Biscuits', 'Cookies', 'Crackers', 'Chocolate biscuits',
+      'Groceries', 'Rice', 'Dal', 'Oil', 'Sugar', 'Salt',
+      'Milk', 'Bread', 'Butter', 'Cheese', 'Yogurt',
+      'Fruits', 'Vegetables', 'Tomatoes', 'Onions', 'Potatoes',
+      'Snacks', 'Chips', 'Nuts', 'Popcorn', 'Chocolates',
+      'Beverages', 'Tea', 'Coffee', 'Juice', 'Soft drinks'
+    ]
+    
+    return suggestions.filter(item => 
+      item.toLowerCase().includes(query.toLowerCase())
+    ).slice(0, 5)
+  }
 
   useEffect(() => {
     setProducts([
@@ -128,6 +152,30 @@ const App: React.FC = () => {
         image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop',
         unit: '30 g',
         discount: 20
+      },
+      {
+        id: 7,
+        name: 'Parle-G Biscuits',
+        description: 'Parle-G glucose biscuits',
+        price: 10,
+        originalPrice: 12,
+        stock: 100,
+        category: 'Snacks & Branded Foods',
+        image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop',
+        unit: '100 g',
+        discount: 17
+      },
+      {
+        id: 8,
+        name: 'Cadbury Dairy Milk',
+        description: 'Cadbury dairy milk chocolate',
+        price: 50,
+        originalPrice: 60,
+        stock: 40,
+        category: 'Snacks & Branded Foods',
+        image: 'https://images.unsplash.com/photo-1549007994-cb92aebf54f1?w=400&h=300&fit=crop',
+        unit: '80 g',
+        discount: 17
       }
     ])
   }, [])
@@ -189,6 +237,22 @@ const App: React.FC = () => {
     } else {
       alert('Invalid OTP. Please try again.')
     }
+  }
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value
+    setSearchQuery(query)
+    if (query.length > 2) {
+      setSearchSuggestions(getSearchSuggestions(query))
+      setShowSearchSuggestions(true)
+    } else {
+      setShowSearchSuggestions(false)
+    }
+  }
+
+  const handleSearchSuggestionClick = (suggestion: string) => {
+    setSearchQuery(suggestion)
+    setShowSearchSuggestions(false)
   }
 
   const filteredProducts = products.filter(product => {
@@ -299,6 +363,93 @@ const App: React.FC = () => {
         </div>
       )}
 
+      {/* Location Modal */}
+      {showLocationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">Change Location</h2>
+              <button 
+                onClick={() => setShowLocationModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="flex items-center space-x-4 mb-6">
+              <button className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
+                Detect my location
+              </button>
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-sm font-bold">
+                  OR
+                </div>
+              </div>
+              <input
+                type="text"
+                placeholder="search delivery location"
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Account Dropdown */}
+      {showAccountDropdown && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-sm p-6">
+            <div className="mb-4">
+              <h2 className="text-xl font-bold text-gray-800">My Account</h2>
+              <p className="text-gray-600">8179688221</p>
+            </div>
+            
+            <div className="space-y-2 mb-6">
+              <button className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg">
+                My Orders
+              </button>
+              <button className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg">
+                Saved Addresses
+              </button>
+              <button className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg">
+                E-Gift Cards
+              </button>
+              <button className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg">
+                FAQ's
+              </button>
+              <button className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg">
+                Account Privacy
+              </button>
+              <button 
+                onClick={() => {
+                  setIsLoggedIn(false)
+                  setShowAccountDropdown(false)
+                }}
+                className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg text-red-600"
+              >
+                Log Out
+              </button>
+            </div>
+            
+            <div className="border-t pt-4">
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                  <span className="text-xs">QR</span>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Simple way to get groceries</p>
+                  <p className="text-lg font-bold text-blue-600">in minutes</p>
+                  <p className="text-xs text-gray-500">Scan the QR code and download shopeasy app</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-3">
@@ -311,43 +462,65 @@ const App: React.FC = () => {
                 </div>
               </div>
               <div className="hidden md:flex items-center space-x-1 text-sm text-gray-600">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                </svg>
-                <span>Deliver to</span>
-                <span className="font-semibold">B.N Reddy Nagar, Hyderabad</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                <span>Delivery in 9 minutes</span>
+                <div 
+                  className="flex items-center space-x-1 cursor-pointer"
+                  onClick={() => setShowLocationModal(true)}
+                >
+                  <span className="font-semibold">{currentLocation}</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
 
             {/* Search */}
-            <div className="flex-1 max-w-2xl mx-4">
+            <div className="flex-1 max-w-2xl mx-4 relative">
               <div className="relative">
                 <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search for products..."
+                  placeholder={`Search "${searchQuery || 'rice'}"`}
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={handleSearchChange}
+                  onFocus={() => {
+                    if (searchQuery.length > 2) {
+                      setShowSearchSuggestions(true)
+                    }
+                  }}
                   className="w-full pl-10 pr-4 py-2 bg-gray-100 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 />
               </div>
+              
+              {/* Search Suggestions */}
+              {showSearchSuggestions && searchSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 mt-1">
+                  {searchSuggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSearchSuggestionClick(suggestion)}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Right Section */}
             <div className="flex items-center space-x-4">
               <button 
-                onClick={() => setShowLoginModal(true)}
+                onClick={() => setShowAccountDropdown(true)}
                 className="flex items-center space-x-1 text-gray-600 hover:text-pink-600"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span className="hidden sm:inline">{isLoggedIn ? 'Profile' : 'Login'}</span>
+                <span className="hidden sm:inline">{isLoggedIn ? 'Account' : 'Login'}</span>
               </button>
               <button 
                 onClick={() => setView('CART')}
@@ -506,7 +679,7 @@ const App: React.FC = () => {
               >
                 ← Back to Home
               </button>
-              <h1 className="text-2xl font-bold">Shopping Cart</h1>
+              <h1 className="text-2xl font-bold">My Cart</h1>
             </div>
             {cartItems.length === 0 ? (
               <div className="text-center py-12">
@@ -524,7 +697,12 @@ const App: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
                   <div className="bg-white rounded-lg p-6">
-                    <h2 className="text-xl font-bold mb-4">Cart Items</h2>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h2 className="text-xl font-bold">Delivery in 9 minutes</h2>
+                        <p className="text-gray-600">Shipment of {cartItems.length} items</p>
+                      </div>
+                    </div>
                     <div className="space-y-4">
                       {cartItems.map((item) => (
                         <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
@@ -540,20 +718,17 @@ const App: React.FC = () => {
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
-                              className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300"
+                              className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center hover:bg-green-700"
                             >
                               -
                             </button>
                             <span className="w-8 text-center">{item.quantity}</span>
                             <button
                               onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
-                              className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300"
+                              className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center hover:bg-green-700"
                             >
                               +
                             </button>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold">₹{item.price * item.quantity}</p>
                           </div>
                         </div>
                       ))}
@@ -562,104 +737,37 @@ const App: React.FC = () => {
                 </div>
                 <div className="lg:col-span-1">
                   <div className="bg-white rounded-lg p-6 sticky top-24">
-                    <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+                    <h2 className="text-xl font-bold mb-4">Bill details</h2>
                     <div className="space-y-2 mb-4">
                       <div className="flex justify-between">
-                        <span>Subtotal</span>
+                        <span>Items total</span>
                         <span>₹{getCartTotal()}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Delivery Fee</span>
-                        <span>₹20</span>
+                        <span>Delivery charge</span>
+                        <span>₹25</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Handling charge</span>
+                        <span>₹2</span>
                       </div>
                       <div className="border-t pt-2">
-                        <div className="flex justify-between font-bold">
-                          <span>Total</span>
-                          <span>₹{getCartTotal() + 20}</span>
+                        <div className="flex justify-between font-bold text-lg">
+                          <span>Grand total</span>
+                          <span>₹{getCartTotal() + 27}</span>
                         </div>
                       </div>
                     </div>
                     <button
-                      onClick={() => setView('CHECKOUT')}
-                      className="w-full bg-pink-600 text-white py-3 rounded-lg font-semibold hover:bg-pink-700"
-                    >
-                      Proceed to Checkout
-                    </button>
+                      onClick={() => setShowAddressInput(true)}
+                      className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700"
+                                          >
+                        Proceed &gt;
+                      </button>
                   </div>
                 </div>
               </div>
             )}
-          </div>
-        )}
-
-        {view === 'CHECKOUT' && (
-          <div>
-            <div className="flex items-center mb-6">
-              <button
-                onClick={() => setView('CART')}
-                className="text-gray-600 hover:text-pink-600 mr-4"
-              >
-                ← Back to Cart
-              </button>
-              <h1 className="text-2xl font-bold">Checkout</h1>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="bg-white rounded-lg p-6">
-                <h2 className="text-xl font-bold mb-4">Delivery Address</h2>
-                <div className="space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Full Name"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                  />
-                  <input
-                    type="tel"
-                    placeholder="Phone Number"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                  />
-                  <textarea
-                    placeholder="Address"
-                    rows={3}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                  />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-6">
-                <h2 className="text-xl font-bold mb-4">Order Summary</h2>
-                <div className="space-y-2 mb-4">
-                  {cartItems.map((item) => (
-                    <div key={item.id} className="flex justify-between">
-                      <span>{item.name} x {item.quantity}</span>
-                      <span>₹{item.price * item.quantity}</span>
-                    </div>
-                  ))}
-                  <div className="border-t pt-2">
-                    <div className="flex justify-between">
-                      <span>Subtotal</span>
-                      <span>₹{getCartTotal()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Delivery Fee</span>
-                      <span>₹20</span>
-                    </div>
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Total</span>
-                      <span>₹{getCartTotal() + 20}</span>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    alert('Order placed successfully!')
-                    setCartItems([])
-                    setView('HOME')
-                  }}
-                  className="w-full bg-pink-600 text-white py-3 rounded-lg font-semibold hover:bg-pink-700"
-                >
-                  Place Order
-                </button>
-              </div>
-            </div>
           </div>
         )}
       </main>
