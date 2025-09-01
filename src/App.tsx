@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { auth } from './lib/supabase'
 
 // Types
 interface Product {
@@ -82,18 +83,25 @@ const App: React.FC = () => {
     ).slice(0, 5)
   }
 
-  // Mock OTP functions (temporarily)
+  // Real Twilio OTP functions
   const handleSendOtp = async () => {
     if (phoneNumber.length === 10) {
       setIsLoading(true)
       setOtpError('')
-      
-      // Simulate API call
-      setTimeout(() => {
-        setShowOtpInput(true)
+      try {
+        const result = await auth.sendOTP(phoneNumber)
+        if (result.success) {
+          setShowOtpInput(true)
+          alert(`OTP sent to +91 ${phoneNumber}`)
+        } else {
+          setOtpError('Failed to send OTP. Please try again.')
+        }
+      } catch (error) {
+        console.error('Error sending OTP:', error)
+        setOtpError('Failed to send OTP. Please try again.')
+      } finally {
         setIsLoading(false)
-        alert(`OTP sent to +91 ${phoneNumber}`)
-      }, 1000)
+      }
     } else {
       alert('Please enter a valid 10-digit mobile number')
     }
@@ -103,29 +111,61 @@ const App: React.FC = () => {
     if (otp.length === 6) {
       setIsLoading(true)
       setOtpError('')
-      
-      // Simulate API call
-      setTimeout(() => {
-        setIsLoggedIn(true)
-        setUserPhone(phoneNumber)
-        setShowLoginModal(false)
-        setPhoneNumber('')
-        setOtp('')
-        setShowOtpInput(false)
+      try {
+        const result = await auth.verifyOTP(phoneNumber, otp)
+        if (result.success) {
+          // Store session if it's a Twilio session
+          if (result.data && result.data.session && result.data.session.access_token === 'twilio_session') {
+            localStorage.setItem('twilio_session', JSON.stringify(result.data.session))
+          }
+          setIsLoggedIn(true)
+          setUserPhone(phoneNumber)
+          setShowLoginModal(false)
+          setPhoneNumber('')
+          setOtp('')
+          setShowOtpInput(false)
+          alert('Login successful!')
+        } else {
+          setOtpError('Invalid OTP. Please try again.')
+        }
+      } catch (error) {
+        console.error('Error verifying OTP:', error)
+        setOtpError('Invalid OTP. Please try again.')
+      } finally {
         setIsLoading(false)
-        alert('Login successful!')
-      }, 1000)
+      }
     } else {
       setOtpError('Please enter a 6-digit OTP')
     }
   }
 
-  const handleLogout = () => {
-    setIsLoggedIn(false)
-    setUserPhone('')
-    setShowAccountDropdown(false)
-    setView('HOME')
+  const handleLogout = async () => {
+    try {
+      await auth.signOut()
+      setIsLoggedIn(false)
+      setUserPhone('')
+      setShowAccountDropdown(false)
+      setView('HOME')
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
   }
+
+  // Check for existing user session on app load
+  useEffect(() => {
+    const checkUserSession = async () => {
+      try {
+        const result = await auth.getCurrentUser()
+        if (result.success && result.user) {
+          setIsLoggedIn(true)
+          setUserPhone(result.user.phone || '')
+        }
+      } catch (error) {
+        console.error('Error checking user session:', error)
+      }
+    }
+    checkUserSession()
+  }, [])
 
   useEffect(() => {
     setProducts([
