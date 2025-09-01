@@ -29,7 +29,7 @@ interface Category {
   image: string
 }
 
-type View = 'HOME' | 'LOGIN' | 'CATEGORY' | 'PRODUCT_DETAIL' | 'CART' | 'CHECKOUT' | 'PROFILE' | 'ORDERS' | 'LOCATION_MODAL' | 'ACCOUNT_DROPDOWN' | 'ADDRESS_INPUT'
+type View = 'HOME' | 'LOGIN' | 'CATEGORY' | 'PRODUCT_DETAIL' | 'CART' | 'CHECKOUT' | 'PROFILE' | 'ORDERS' | 'LOCATION_MODAL' | 'ACCOUNT_DROPDOWN' | 'ADDRESS_INPUT' | 'MY_ORDERS' | 'SAVED_ADDRESSES' | 'E_GIFT_CARDS' | 'FAQS' | 'ACCOUNT_PRIVACY'
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>('HOME')
@@ -48,6 +48,7 @@ const App: React.FC = () => {
   const [currentLocation, setCurrentLocation] = useState('B.N Reddy Nagar, Hyderabad')
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([])
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false)
+  const [userPhone, setUserPhone] = useState('8179688221')
 
   // Sample data - Blinkit style
   const categories: Category[] = [
@@ -176,6 +177,30 @@ const App: React.FC = () => {
         image: 'https://images.unsplash.com/photo-1549007994-cb92aebf54f1?w=400&h=300&fit=crop',
         unit: '80 g',
         discount: 17
+      },
+      {
+        id: 9,
+        name: 'Basmati Rice',
+        description: 'Premium basmati rice',
+        price: 80,
+        originalPrice: 100,
+        stock: 30,
+        category: 'Staples',
+        image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop',
+        unit: '1 kg',
+        discount: 20
+      },
+      {
+        id: 10,
+        name: 'Toor Dal',
+        description: 'Fresh toor dal',
+        price: 45,
+        originalPrice: 55,
+        stock: 25,
+        category: 'Staples',
+        image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop',
+        unit: '500 g',
+        discount: 18
       }
     ])
   }, [])
@@ -230,6 +255,7 @@ const App: React.FC = () => {
   const handleVerifyOtp = () => {
     if (otp === '123456') {
       setIsLoggedIn(true)
+      setUserPhone(phoneNumber)
       setShowLoginModal(false)
       setPhoneNumber('')
       setOtp('')
@@ -253,6 +279,11 @@ const App: React.FC = () => {
   const handleSearchSuggestionClick = (suggestion: string) => {
     setSearchQuery(suggestion)
     setShowSearchSuggestions(false)
+  }
+
+  const handleAccountMenuClick = (menuItem: View) => {
+    setShowAccountDropdown(false)
+    setView(menuItem)
   }
 
   const filteredProducts = products.filter(product => {
@@ -404,29 +435,45 @@ const App: React.FC = () => {
           <div className="bg-white rounded-lg w-full max-w-sm p-6">
             <div className="mb-4">
               <h2 className="text-xl font-bold text-gray-800">My Account</h2>
-              <p className="text-gray-600">8179688221</p>
+              <p className="text-gray-600">{userPhone}</p>
             </div>
             
             <div className="space-y-2 mb-6">
-              <button className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg">
+              <button 
+                onClick={() => handleAccountMenuClick('MY_ORDERS')}
+                className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg"
+              >
                 My Orders
               </button>
-              <button className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg">
+              <button 
+                onClick={() => handleAccountMenuClick('SAVED_ADDRESSES')}
+                className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg"
+              >
                 Saved Addresses
               </button>
-              <button className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg">
+              <button 
+                onClick={() => handleAccountMenuClick('E_GIFT_CARDS')}
+                className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg"
+              >
                 E-Gift Cards
               </button>
-              <button className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg">
+              <button 
+                onClick={() => handleAccountMenuClick('FAQS')}
+                className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg"
+              >
                 FAQ's
               </button>
-              <button className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg">
+              <button 
+                onClick={() => handleAccountMenuClick('ACCOUNT_PRIVACY')}
+                className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg"
+              >
                 Account Privacy
               </button>
               <button 
                 onClick={() => {
                   setIsLoggedIn(false)
                   setShowAccountDropdown(false)
+                  setView('HOME')
                 }}
                 className="w-full text-left py-2 px-3 hover:bg-gray-50 rounded-lg text-red-600"
               >
@@ -514,7 +561,7 @@ const App: React.FC = () => {
             {/* Right Section */}
             <div className="flex items-center space-x-4">
               <button 
-                onClick={() => setShowAccountDropdown(true)}
+                onClick={() => isLoggedIn ? setShowAccountDropdown(true) : setShowLoginModal(true)}
                 className="flex items-center space-x-1 text-gray-600 hover:text-pink-600"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -761,13 +808,110 @@ const App: React.FC = () => {
                     <button
                       onClick={() => setShowAddressInput(true)}
                       className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700"
-                                          >
-                        Proceed &gt;
-                      </button>
+                    >
+                      Proceed &gt;
+                    </button>
                   </div>
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Account Menu Pages */}
+        {view === 'MY_ORDERS' && (
+          <div>
+            <div className="flex items-center mb-6">
+              <button
+                onClick={() => setView('HOME')}
+                className="text-gray-600 hover:text-pink-600 mr-4"
+              >
+                ← Back to Home
+              </button>
+              <h1 className="text-2xl font-bold">My Orders</h1>
+            </div>
+            <div className="bg-white rounded-lg p-6">
+              <p className="text-gray-600">No orders found. Start shopping to see your orders here!</p>
+            </div>
+          </div>
+        )}
+
+        {view === 'SAVED_ADDRESSES' && (
+          <div>
+            <div className="flex items-center mb-6">
+              <button
+                onClick={() => setView('HOME')}
+                className="text-gray-600 hover:text-pink-600 mr-4"
+              >
+                ← Back to Home
+              </button>
+              <h1 className="text-2xl font-bold">Saved Addresses</h1>
+            </div>
+            <div className="bg-white rounded-lg p-6">
+              <p className="text-gray-600">No saved addresses. Add an address during checkout!</p>
+            </div>
+          </div>
+        )}
+
+        {view === 'E_GIFT_CARDS' && (
+          <div>
+            <div className="flex items-center mb-6">
+              <button
+                onClick={() => setView('HOME')}
+                className="text-gray-600 hover:text-pink-600 mr-4"
+              >
+                ← Back to Home
+              </button>
+              <h1 className="text-2xl font-bold">E-Gift Cards</h1>
+            </div>
+            <div className="bg-white rounded-lg p-6">
+              <p className="text-gray-600">Gift cards coming soon!</p>
+            </div>
+          </div>
+        )}
+
+        {view === 'FAQS' && (
+          <div>
+            <div className="flex items-center mb-6">
+              <button
+                onClick={() => setView('HOME')}
+                className="text-gray-600 hover:text-pink-600 mr-4"
+              >
+                ← Back to Home
+              </button>
+              <h1 className="text-2xl font-bold">FAQ's</h1>
+            </div>
+            <div className="bg-white rounded-lg p-6">
+              <h3 className="font-bold mb-4">Frequently Asked Questions</h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold">How fast is delivery?</h4>
+                  <p className="text-gray-600">We deliver groceries in 10 minutes!</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold">What payment methods do you accept?</h4>
+                  <p className="text-gray-600">We accept all major credit cards, UPI, and cash on delivery.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {view === 'ACCOUNT_PRIVACY' && (
+          <div>
+            <div className="flex items-center mb-6">
+              <button
+                onClick={() => setView('HOME')}
+                className="text-gray-600 hover:text-pink-600 mr-4"
+              >
+                ← Back to Home
+              </button>
+              <h1 className="text-2xl font-bold">Account Privacy</h1>
+            </div>
+            <div className="bg-white rounded-lg p-6">
+              <h3 className="font-bold mb-4">Privacy Settings</h3>
+              <p className="text-gray-600">Manage your privacy settings here.</p>
+            </div>
           </div>
         )}
       </main>
