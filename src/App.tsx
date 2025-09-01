@@ -41,10 +41,10 @@ interface GiftCard {
   expiry: string
 }
 
-type View = 'HOME' | 'PRODUCT_DETAIL' | 'PROFILE' | 'ORDERS' | 'WISHLIST' | 'CART' | 'CHECKOUT' | 'PAYMENTS' | 'GIFT_CARDS' | 'SUPPORT' | 'MAPS' | 'ORDER_HISTORY'
+type View = 'HOME' | 'LOGIN' | 'PRODUCT_DETAIL' | 'PROFILE' | 'ORDERS' | 'WISHLIST' | 'CART' | 'CHECKOUT' | 'PAYMENTS' | 'GIFT_CARDS' | 'SUPPORT' | 'MAPS' | 'ORDER_HISTORY'
 
 const App: React.FC = () => {
-  const [view, setView] = useState<View>('HOME')
+  const [view, setView] = useState<View>('LOGIN') // Start with login
   const [products, setProducts] = useState<Product[]>([])
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [user, setUser] = useState<User | null>(null)
@@ -55,6 +55,9 @@ const App: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
   const [giftCards, setGiftCards] = useState<GiftCard[]>([])
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [showOtpInput, setShowOtpInput] = useState(false)
+  const [otp, setOtp] = useState('')
 
   // Load sample data
   useEffect(() => {
@@ -190,6 +193,31 @@ const App: React.FC = () => {
     setView('ORDER_HISTORY')
   }
 
+  const handleSendOtp = () => {
+    if (phoneNumber.length === 10) {
+      setShowOtpInput(true)
+      // Simulate OTP sending
+      alert(`OTP sent to +91 ${phoneNumber}`)
+    } else {
+      alert('Please enter a valid 10-digit mobile number')
+    }
+  }
+
+  const handleVerifyOtp = () => {
+    if (otp === '123456') {
+      setIsLoggedIn(true)
+      setUser({
+        id: '1',
+        name: 'User',
+        email: `${phoneNumber}@example.com`,
+        phoneNumber: phoneNumber
+      })
+      setView('HOME')
+    } else {
+      alert('Invalid OTP. Please try again.')
+    }
+  }
+
   const filteredProducts = products.filter(product => {
     if (selectedCategory !== 'All' && product.category !== selectedCategory) return false
     if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase())) return false
@@ -206,6 +234,111 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Login Modal - Blinkit Style */}
+      {view === 'LOGIN' && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-md p-6 relative">
+            {/* Back Arrow */}
+            <button 
+              onClick={() => setView('HOME')}
+              className="absolute top-6 left-6 text-black"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            {/* ShopEasy Logo */}
+            <div className="flex justify-end mb-6">
+              <div className="bg-yellow-400 text-black px-3 py-1 rounded font-bold text-lg">
+                shopeasy
+              </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                India's last minute app
+              </h1>
+              <p className="text-lg text-gray-600">
+                Log in or Sign up
+              </p>
+            </div>
+
+            {/* Phone Number Input */}
+            {!showOtpInput ? (
+              <div className="space-y-4">
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    +91
+                  </div>
+                  <input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="Enter mobile number"
+                    className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    maxLength={10}
+                  />
+                </div>
+                <button
+                  onClick={handleSendOtp}
+                  disabled={phoneNumber.length !== 10}
+                  className={`w-full py-4 rounded-lg font-semibold ${
+                    phoneNumber.length === 10 
+                      ? 'bg-pink-600 text-white hover:bg-pink-700' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  Continue
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <input
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="Enter OTP"
+                    className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-center text-2xl tracking-widest"
+                    maxLength={6}
+                  />
+                  <p className="text-sm text-gray-500 mt-2 text-center">
+                    OTP sent to +91 {phoneNumber}
+                  </p>
+                </div>
+                <button
+                  onClick={handleVerifyOtp}
+                  disabled={otp.length !== 6}
+                  className={`w-full py-4 rounded-lg font-semibold ${
+                    otp.length === 6 
+                      ? 'bg-pink-600 text-white hover:bg-pink-700' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  Verify OTP
+                </button>
+                <button
+                  onClick={() => setShowOtpInput(false)}
+                  className="w-full py-2 text-pink-600 font-semibold"
+                >
+                  Change Number
+                </button>
+              </div>
+            )}
+
+            {/* Terms */}
+            <p className="text-xs text-gray-500 mt-6 text-center">
+              By continuing, you agree to our{' '}
+              <a href="#" className="underline">Terms of service</a>
+              {' '}&{' '}
+              <a href="#" className="underline">Privacy policy</a>
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header - Your original design */}
       <header className="bg-white shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between flex-wrap md:flex-nowrap gap-y-3 gap-x-4">
@@ -266,7 +399,7 @@ const App: React.FC = () => {
             </button>
             <button 
               className="flex items-center space-x-1 text-gray-600 hover:text-pink-600"
-              onClick={() => isLoggedIn ? setView('PROFILE') : alert('Login functionality coming soon!')}
+              onClick={() => isLoggedIn ? setView('PROFILE') : setView('LOGIN')}
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -495,12 +628,12 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg shadow-sm border p-6">
                 <h3 className="text-xl font-bold mb-4">User Profile</h3>
-                <p className="text-gray-600 mb-4">Profile functionality coming soon!</p>
+                <p className="text-gray-600 mb-4">Welcome, {user?.name || 'User'}!</p>
                 <button 
                   onClick={() => {
                     setIsLoggedIn(false)
                     setUser(null)
-                    setView('HOME')
+                    setView('LOGIN')
                   }}
                   className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
                 >
