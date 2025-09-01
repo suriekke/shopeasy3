@@ -26,8 +26,25 @@ interface User {
   phoneNumber: string
 }
 
+interface Order {
+  id: string
+  items: CartItem[]
+  total: number
+  status: 'processing' | 'delivered' | 'cancelled'
+  date: string
+}
+
+interface GiftCard {
+  id: string
+  code: string
+  balance: number
+  expiry: string
+}
+
+type View = 'HOME' | 'PRODUCT_DETAIL' | 'PROFILE' | 'ORDERS' | 'WISHLIST' | 'CART' | 'CHECKOUT' | 'PAYMENTS' | 'GIFT_CARDS' | 'SUPPORT' | 'MAPS' | 'ORDER_HISTORY'
+
 const App: React.FC = () => {
-  const [view, setView] = useState<'HOME' | 'PRODUCT_DETAIL' | 'PROFILE' | 'CART' | 'CHECKOUT'>('HOME')
+  const [view, setView] = useState<View>('HOME')
   const [products, setProducts] = useState<Product[]>([])
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [user, setUser] = useState<User | null>(null)
@@ -36,6 +53,8 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [giftCards, setGiftCards] = useState<GiftCard[]>([])
 
   // Load sample data
   useEffect(() => {
@@ -95,6 +114,25 @@ const App: React.FC = () => {
         image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=300&fit=crop'
       }
     ])
+
+    // Sample orders
+    setOrders([
+      {
+        id: '1',
+        items: [
+          { id: 1, name: 'Fresh Strawberries', price: 4.99, quantity: 2, image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=400&h=300&fit=crop' }
+        ],
+        total: 9.98,
+        status: 'delivered',
+        date: '2024-01-15'
+      }
+    ])
+
+    // Sample gift cards
+    setGiftCards([
+      { id: '1', code: 'SHOP50', balance: 50, expiry: '2024-12-31' }
+    ])
+
     setLoading(false)
   }, [])
 
@@ -134,6 +172,22 @@ const App: React.FC = () => {
 
   const getCartTotal = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0)
+  }
+
+  const placeOrder = () => {
+    if (cartItems.length === 0) return
+    
+    const newOrder: Order = {
+      id: Date.now().toString(),
+      items: [...cartItems],
+      total: getCartTotal(),
+      status: 'processing',
+      date: new Date().toISOString().split('T')[0]
+    }
+    
+    setOrders(prev => [newOrder, ...prev])
+    setCartItems([])
+    setView('ORDER_HISTORY')
   }
 
   const filteredProducts = products.filter(product => {
@@ -198,8 +252,18 @@ const App: React.FC = () => {
 
           {/* Right Section */}
           <div className="flex items-center space-x-4 sm:space-x-6 text-sm">
-            <button className="hidden sm:block text-gray-600 hover:text-pink-600">Support</button>
-            <button className="hidden sm:block text-gray-600 hover:text-pink-600">Analytics</button>
+            <button 
+              onClick={() => setView('SUPPORT')}
+              className="hidden sm:block text-gray-600 hover:text-pink-600"
+            >
+              Support
+            </button>
+            <button 
+              onClick={() => setView('MAPS')}
+              className="hidden sm:block text-gray-600 hover:text-pink-600"
+            >
+              Maps
+            </button>
             <button 
               className="flex items-center space-x-1 text-gray-600 hover:text-pink-600"
               onClick={() => isLoggedIn ? setView('PROFILE') : alert('Login functionality coming soon!')}
@@ -408,11 +472,7 @@ const App: React.FC = () => {
                 <span>${getCartTotal()}</span>
               </div>
               <button 
-                onClick={() => {
-                  alert('Order placed successfully!')
-                  setCartItems([])
-                  setView('HOME')
-                }}
+                onClick={placeOrder}
                 className="w-full bg-pink-600 text-white py-3 rounded-lg hover:bg-pink-700 mt-6"
               >
                 Place Order
@@ -432,19 +492,240 @@ const App: React.FC = () => {
               </button>
               <h2 className="text-3xl font-bold">Profile</h2>
             </div>
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h3 className="text-xl font-bold mb-4">User Profile</h3>
-              <p className="text-gray-600 mb-4">Profile functionality coming soon!</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white rounded-lg shadow-sm border p-6">
+                <h3 className="text-xl font-bold mb-4">User Profile</h3>
+                <p className="text-gray-600 mb-4">Profile functionality coming soon!</p>
+                <button 
+                  onClick={() => {
+                    setIsLoggedIn(false)
+                    setUser(null)
+                    setView('HOME')
+                  }}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+                >
+                  Logout
+                </button>
+              </div>
+              <div className="bg-white rounded-lg shadow-sm border p-6">
+                <h3 className="text-xl font-bold mb-4">Quick Actions</h3>
+                <div className="space-y-2">
+                  <button 
+                    onClick={() => setView('ORDERS')}
+                    className="w-full text-left p-3 hover:bg-gray-50 rounded-lg"
+                  >
+                    📦 My Orders
+                  </button>
+                  <button 
+                    onClick={() => setView('PAYMENTS')}
+                    className="w-full text-left p-3 hover:bg-gray-50 rounded-lg"
+                  >
+                    💳 Payment Methods
+                  </button>
+                  <button 
+                    onClick={() => setView('GIFT_CARDS')}
+                    className="w-full text-left p-3 hover:bg-gray-50 rounded-lg"
+                  >
+                    🎁 Gift Cards
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {view === 'ORDERS' && (
+          <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="flex items-center mb-6">
               <button 
-                onClick={() => {
-                  setIsLoggedIn(false)
-                  setUser(null)
-                  setView('HOME')
-                }}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+                onClick={() => setView('PROFILE')}
+                className="text-gray-600 hover:text-pink-600 mr-4"
               >
-                Logout
+                ← Back to Profile
               </button>
+              <h2 className="text-3xl font-bold">My Orders</h2>
+            </div>
+            <div className="space-y-4">
+              {orders.map((order) => (
+                <div key={order.id} className="bg-white rounded-lg shadow-sm border p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="font-bold">Order #{order.id}</h3>
+                      <p className="text-gray-600">Placed on {order.date}</p>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                      order.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {order.status}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {order.items.map((item) => (
+                      <div key={item.id} className="flex justify-between">
+                        <span>{item.name} x {item.quantity}</span>
+                        <span>${item.price * item.quantity}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="border-t pt-4 mt-4">
+                    <div className="flex justify-between font-bold">
+                      <span>Total:</span>
+                      <span>${order.total}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {view === 'PAYMENTS' && (
+          <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="flex items-center mb-6">
+              <button 
+                onClick={() => setView('PROFILE')}
+                className="text-gray-600 hover:text-pink-600 mr-4"
+              >
+                ← Back to Profile
+              </button>
+              <h2 className="text-3xl font-bold">Payment Methods</h2>
+            </div>
+            <div className="bg-white rounded-lg shadow-sm border p-6">
+              <h3 className="text-xl font-bold mb-4">Saved Payment Methods</h3>
+              <p className="text-gray-600 mb-4">Payment management functionality coming soon!</p>
+              <button className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700">
+                Add Payment Method
+              </button>
+            </div>
+          </div>
+        )}
+
+        {view === 'GIFT_CARDS' && (
+          <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="flex items-center mb-6">
+              <button 
+                onClick={() => setView('PROFILE')}
+                className="text-gray-600 hover:text-pink-600 mr-4"
+              >
+                ← Back to Profile
+              </button>
+              <h2 className="text-3xl font-bold">Gift Cards</h2>
+            </div>
+            <div className="space-y-4">
+              {giftCards.map((card) => (
+                <div key={card.id} className="bg-white rounded-lg shadow-sm border p-6">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-bold">Gift Card</h3>
+                      <p className="text-gray-600">Code: {card.code}</p>
+                      <p className="text-gray-600">Expires: {card.expiry}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-pink-600">${card.balance}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {view === 'SUPPORT' && (
+          <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="flex items-center mb-6">
+              <button 
+                onClick={() => setView('HOME')}
+                className="text-gray-600 hover:text-pink-600 mr-4"
+              >
+                ← Back to Home
+              </button>
+              <h2 className="text-3xl font-bold">Customer Support</h2>
+            </div>
+            <div className="bg-white rounded-lg shadow-sm border p-6">
+              <h3 className="text-xl font-bold mb-4">How can we help you?</h3>
+              <div className="space-y-4">
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold">📞 Contact Support</h4>
+                  <p className="text-gray-600">Call us: 1-800-SHOP-EASY</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold">💬 Live Chat</h4>
+                  <p className="text-gray-600">Available 24/7</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold">📧 Email Support</h4>
+                  <p className="text-gray-600">support@shopeasy.com</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {view === 'MAPS' && (
+          <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="flex items-center mb-6">
+              <button 
+                onClick={() => setView('HOME')}
+                className="text-gray-600 hover:text-pink-600 mr-4"
+              >
+                ← Back to Home
+              </button>
+              <h2 className="text-3xl font-bold">Location & Maps</h2>
+            </div>
+            <div className="bg-white rounded-lg shadow-sm border p-6">
+              <h3 className="text-xl font-bold mb-4">Delivery Location</h3>
+              <div className="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+                <p className="text-gray-600">Map functionality coming soon!</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {view === 'ORDER_HISTORY' && (
+          <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="flex items-center mb-6">
+              <button 
+                onClick={() => setView('PROFILE')}
+                className="text-gray-600 hover:text-pink-600 mr-4"
+              >
+                ← Back to Profile
+              </button>
+              <h2 className="text-3xl font-bold">Order History</h2>
+            </div>
+            <div className="space-y-4">
+              {orders.map((order) => (
+                <div key={order.id} className="bg-white rounded-lg shadow-sm border p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="font-bold">Order #{order.id}</h3>
+                      <p className="text-gray-600">Placed on {order.date}</p>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                      order.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {order.status}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {order.items.map((item) => (
+                      <div key={item.id} className="flex justify-between">
+                        <span>{item.name} x {item.quantity}</span>
+                        <span>${item.price * item.quantity}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="border-t pt-4 mt-4">
+                    <div className="flex justify-between font-bold">
+                      <span>Total:</span>
+                      <span>${order.total}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
