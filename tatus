@@ -1,0 +1,75 @@
+[1mdiff --git a/add-sample-data-fresh.sql b/add-sample-data-fresh.sql[m
+[1mindex e69de29..a78ab8c 100644[m
+[1m--- a/add-sample-data-fresh.sql[m
+[1m+++ b/add-sample-data-fresh.sql[m
+[36m@@ -0,0 +1,70 @@[m
+[32m+[m[32m-- Add Sample Data to Fresh Database[m
+[32m+[m[32m-- Run this in your Supabase project SQL Editor[m
+[32m+[m
+[32m+[m[32m-- Add sample categories[m
+[32m+[m[32mINSERT INTO categories (name, description, icon, image_url, sort_order) VALUES[m
+[32m+[m[32m('Fruits & Vegetables', 'Fresh fruits and vegetables', '🥬', 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=300&fit=crop', 1),[m
+[32m+[m[32m('Dairy & Bakery', 'Milk, bread, and dairy products', '🥛', 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop', 2),[m
+[32m+[m[32m('Staples', 'Rice, dal, oil, and basic groceries', '🍚', 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop', 3),[m
+[32m+[m[32m('Snacks & Branded Foods', 'Chips, biscuits, and packaged foods', '🍿', 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop', 4),[m
+[32m+[m[32m('Beverages', 'Tea, coffee, juices, and soft drinks', '🥤', 'https://images.unsplash.com/photo-1546173159-315724a31696?w=400&h=300&fit=crop', 5),[m
+[32m+[m[32m('Personal Care', 'Soaps, shampoos, and personal hygiene', '🧴', 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=300&fit=crop', 6),[m
+[32m+[m[32m('Home Care', 'Cleaning supplies and household items', '🧽', 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400&h=300&fit=crop', 7),[m
+[32m+[m[32m('Baby Care', 'Baby food, diapers, and baby products', '👶', 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', 8);[m
+[32m+[m
+[32m+[m[32m-- Add sample products[m
+[32m+[m[32mINSERT INTO products (name, description, price, original_price, stock_quantity, category_id, image_url, unit, discount_percentage, is_featured) VALUES[m
+[32m+[m[32m-- Fruits & Vegetables[m
+[32m+[m[32m('Fresh Onions', 'Fresh onions from local farms', 40.00, 50.00, 50, (SELECT id FROM categories WHERE name = 'Fruits & Vegetables'), 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&h=300&fit=crop', '1 kg', 20, true),[m
+[32m+[m[32m('Fresh Tomatoes', 'Fresh red tomatoes', 30.00, 40.00, 40, (SELECT id FROM categories WHERE name = 'Fruits & Vegetables'), 'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=400&h=300&fit=crop', '500 g', 25, true),[m
+[32m+[m[32m('Fresh Potatoes', 'Fresh potatoes for all your cooking needs', 25.00, 35.00, 60, (SELECT id FROM categories WHERE name = 'Fruits & Vegetables'), 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&h=300&fit=crop', '1 kg', 29, false),[m
+[32m+[m[32m('Fresh Carrots', 'Sweet and crunchy carrots', 35.00, 45.00, 30, (SELECT id FROM categories WHERE name = 'Fruits & Vegetables'), 'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=400&h=300&fit=crop', '500 g', 22, false),[m
+[32m+[m
+[32m+[m[32m-- Dairy & Bakery[m
+[32m+[m[32m('Amul Full Cream Milk', 'Pure and fresh full cream milk', 60.00, 70.00, 30, (SELECT id FROM categories WHERE name = 'Dairy & Bakery'), 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop', '1 L', 14, true),[m
+[32m+[m[32m('Britannia Brown Bread', 'Healthy brown bread', 35.00, 45.00, 25, (SELECT id FROM categories WHERE name = 'Dairy & Bakery'), 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=300&fit=crop', '400 g', 22, true),[m
+[32m+[m[32m('Amul Butter', 'Pure butter for your bread', 55.00, 65.00, 20, (SELECT id FROM categories WHERE name = 'Dairy & Bakery'), 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop', '100 g', 15, false),[m
+[32m+[m[32m('Curd', 'Fresh homemade curd', 25.00, 30.00, 35, (SELECT id FROM categories WHERE name = 'Dairy & Bakery'), 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop', '500 g', 17, false),[m
+[32m+[m
+[32m+[m[32m-- Staples[m
+[32m+[m[32m('Fortune Sunflower Oil', 'Pure sunflower oil for cooking', 120.00, 140.00, 20, (SELECT id FROM categories WHERE name = 'Staples'), 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop', '1 L', 14, true),[m
+[32m+[m[32m('Basmati Rice', 'Premium basmati rice', 80.00, 100.00, 30, (SELECT id FROM categories WHERE name = 'Staples'), 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop', '1 kg', 20, true),[m
+[32m+[m[32m('Toor Dal', 'Fresh toor dal', 45.00, 55.00, 25, (SELECT id FROM categories WHERE name = 'Staples'), 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop', '500 g', 18, false),[m
+[32m+[m[32m('Sugar', 'Pure white sugar', 40.00, 50.00, 40, (SELECT id FROM categories WHERE name = 'Staples'), 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop', '1 kg', 20, false),[m
+[32m+[m[32m('Salt', 'Iodized salt', 15.00, 20.00, 50, (SELECT id FROM categories WHERE name = 'Staples'), 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop', '1 kg', 25, false),[m
+[32m+[m
+[32m+[m[32m-- Snacks & Branded Foods[m
+[32m+[m[32m('Lays Classic', 'Classic potato chips', 20.00, 25.00, 60, (SELECT id FROM categories WHERE name = 'Snacks & Branded Foods'), 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop', '30 g', 20, true),[m
+[32m+[m[32m('Parle-G Biscuits', 'Glucose biscuits', 10.00, 12.00, 100, (SELECT id FROM categories WHERE name = 'Snacks & Branded Foods'), 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop', '100 g', 17, true),[m
+[32m+[m[32m('Cadbury Dairy Milk', 'Chocolate bar', 50.00, 60.00, 40, (SELECT id FROM categories WHERE name = 'Snacks & Branded Foods'), 'https://images.unsplash.com/photo-1549007994-cb92aebf54f1?w=400&h=300&fit=crop', '80 g', 17, true),[m
+[32m+[m[32m('Kurkure', 'Spicy snack', 15.00, 20.00, 45, (SELECT id FROM categories WHERE name = 'Snacks & Branded Foods'), 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop', '60 g', 25, false),[m
+[32m+[m[32m('Oreo Cookies', 'Chocolate sandwich cookies', 30.00, 40.00, 30, (SELECT id FROM categories WHERE name = 'Snacks & Branded Foods'), 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop', '137 g', 25, false),[m
+[32m+[m
+[32m+[m[32m-- Beverages[m
+[32m+[m[32m('Tata Tea', 'Premium tea leaves', 45.00, 55.00, 35, (SELECT id FROM categories WHERE name = 'Beverages'), 'https://images.unsplash.com/photo-1546173159-315724a31696?w=400&h=300&fit=crop', '250 g', 18, true),[m
+[32m+[m[32m('Nescafe Classic', 'Instant coffee', 35.00, 45.00, 25, (SELECT id FROM categories WHERE name = 'Beverages'), 'https://images.unsplash.com/photo-1546173159-315724a31696?w=400&h=300&fit=crop', '50 g', 22, true),[m
+[32m+[m[32m('Coca Cola', 'Refreshing soft drink', 40.00, 50.00, 40, (SELECT id FROM categories WHERE name = 'Beverages'), 'https://images.unsplash.com/photo-1546173159-315724a31696?w=400&h=300&fit=crop', '2 L', 20, false),[m
+[32m+[m[32m('Sprite', 'Lemon-lime soft drink', 35.00, 45.00, 30, (SELECT id FROM categories WHERE name = 'Beverages'), 'https://images.unsplash.com/photo-1546173159-315724a31696?w=400&h=300&fit=crop', '2 L', 22, false),[m
+[32m+[m
+[32m+[m[32m-- Personal Care[m
+[32m+[m[32m('Dove Soap', 'Moisturizing soap bar', 25.00, 35.00, 40, (SELECT id FROM categories WHERE name = 'Personal Care'), 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=300&fit=crop', '75 g', 29, true),[m
+[32m+[m[32m('Head and Shoulders Shampoo', 'Anti-dandruff shampoo', 180.00, 220.00, 20, (SELECT id FROM categories WHERE name = 'Personal Care'), 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=300&fit=crop', '180 ml', 18, true),[m
+[32m+[m[32m('Colgate Toothpaste', 'Fresh mint toothpaste', 45.00, 55.00, 35, (SELECT id FROM categories WHERE name = 'Personal Care'), 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=300&fit=crop', '100 g', 18, false),[m
+[32m+[m[32m('Gillette Razor', 'Mens razor blades', 120.00, 150.00, 15, (SELECT id FROM categories WHERE name = 'Personal Care'), 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=300&fit=crop', '4 blades', 20, false),[m
+[32m+[m
+[32m+[m[32m-- Home Care[m
+[32m+[m[32m('Surf Excel Liquid', 'Laundry detergent', 85.00, 105.00, 25, (SELECT id FROM categories WHERE name = 'Home Care'), 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400&h=300&fit=crop', '1 L', 19, true),[m
+[32m+[m[32m('Harpic Bathroom Cleaner', 'Bathroom cleaner', 65.00, 85.00, 20, (SELECT id FROM categories WHERE name = 'Home Care'), 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400&h=300&fit=crop', '1 L', 24, true),[m
+[32m+[m[32m('Scotch Brite Scrub Pad', 'Kitchen scrub pad', 15.00, 20.00, 30, (SELECT id FROM categories WHERE name = 'Home Care'), 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400&h=300&fit=crop', '3 pieces', 25, false),[m
+[32m+[m[32m('Good Knight Mosquito Repellent', 'Mosquito repellent', 45.00, 60.00, 15, (SELECT id FROM categories WHERE name = 'Home Care'), 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400&h=300&fit=crop', '45 ml', 25, false),[m
+[32m+[m
+[32m+[m[32m-- Baby Care[m
+[32m+[m[32m('Pampers Diapers', 'Baby diapers', 450.00, 550.00, 20, (SELECT id FROM categories WHERE name = 'Baby Care'), 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', '30 pieces', 18, true),[m
+[32m+[m[32m('Cerelac Baby Food', 'Infant cereal', 120.00, 150.00, 25, (SELECT id FROM categories WHERE name = 'Baby Care'), 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', '300 g', 20, true),[m
+[32m+[m[32m('Johnsons Baby Soap', 'Gentle baby soap', 35.00, 45.00, 30, (SELECT id FROM categories WHERE name = 'Baby Care'), 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', '75 g', 22, false),[m
+[32m+[m[32m('Baby Oil', 'Baby massage oil', 85.00, 110.00, 15, (SELECT id FROM categories WHERE name = 'Baby Care'), 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', '200 ml', 23, false);[m
+[32m+[m
+[32m+[m[32m-- Check if data was added successfully[m
+[32m+[m[32mSELECT 'Categories' as table_name, COUNT(*) as count FROM categories[m
+[32m+[m[32mUNION ALL[m
+[32m+[m[32mSELECT 'Products' as table_name, COUNT(*) as count FROM products;[m
