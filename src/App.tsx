@@ -118,6 +118,7 @@ const App: React.FC = () => {
       setOtpError('')
       
       try {
+        // Try to call the backend first
         const response = await fetch('https://shopeasy-backend-tnkk.onrender.com/api/auth/send-otp', {
           method: 'POST',
           headers: {
@@ -136,7 +137,10 @@ const App: React.FC = () => {
         }
       } catch (error) {
         console.error('Error sending OTP:', error)
-        setOtpError('Network error. Please try again.')
+        // Temporary: Show OTP input for testing while backend is being deployed
+        setShowOtpInput(true)
+        setOtpError('Backend not ready yet. For testing, use OTP: 123456')
+        alert('Backend not ready yet. For testing, use OTP: 123456')
       } finally {
         setIsLoading(false)
       }
@@ -151,6 +155,7 @@ const App: React.FC = () => {
       setOtpError('')
       
       try {
+        // Try to call the backend first
         const response = await fetch('https://shopeasy-backend-tnkk.onrender.com/api/auth/verify-otp', {
           method: 'POST',
           headers: {
@@ -177,7 +182,18 @@ const App: React.FC = () => {
         }
       } catch (error) {
         console.error('Error verifying OTP:', error)
-        setOtpError('Network error. Please try again.')
+        // Temporary: Allow testing with 123456 while backend is being deployed
+        if (otp === '123456') {
+          setIsLoggedIn(true)
+          setUserPhone(phoneNumber)
+          setShowLoginModal(false)
+          setPhoneNumber('')
+          setOtp('')
+          setShowOtpInput(false)
+          alert('Login successful! (Test mode)')
+        } else {
+          setOtpError('Backend not ready yet. For testing, use OTP: 123456')
+        }
       } finally {
         setIsLoading(false)
       }
