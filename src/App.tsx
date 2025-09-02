@@ -111,7 +111,7 @@ const App: React.FC = () => {
     return suggestions.slice(0, 5)
   }
 
-  // Real Twilio OTP Functions - FIXED for Render compatibility
+  // Real Twilio OTP Functions - FIXED
   const handleSendOtp = async () => {
     if (phoneNumber.length === 10) {
       setIsLoading(true)
