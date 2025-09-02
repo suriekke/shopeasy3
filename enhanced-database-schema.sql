@@ -297,3 +297,4 @@ CREATE POLICY "Public read access for product_reviews" ON product_reviews FOR SE
 -- Show created tables
 SELECT 'Enhanced database schema created successfully!' as message;
 SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;
+

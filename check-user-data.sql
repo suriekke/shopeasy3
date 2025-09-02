@@ -34,3 +34,4 @@ SELECT EXISTS (
 SELECT 'auth.users' as table_name, COUNT(*) as user_count FROM auth.users
 UNION ALL
 SELECT 'user_profiles' as table_name, COUNT(*) as user_count FROM user_profiles;
+

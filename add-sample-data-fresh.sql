@@ -68,3 +68,4 @@ INSERT INTO products (name, description, price, original_price, stock_quantity, 
 SELECT 'Categories' as table_name, COUNT(*) as count FROM categories
 UNION ALL
 SELECT 'Products' as table_name, COUNT(*) as count FROM products;
+

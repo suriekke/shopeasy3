@@ -81,3 +81,4 @@ UNION ALL
 SELECT 'User Profiles' as table_name, COUNT(*) as count FROM user_profiles
 UNION ALL
 SELECT 'Product Reviews' as table_name, COUNT(*) as count FROM product_reviews;
+

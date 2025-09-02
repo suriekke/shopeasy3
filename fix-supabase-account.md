@@ -107,3 +107,4 @@ echo "VITE_SUPABASE_ANON_KEY=your-new-anon-key" >> .env.local
 2. **Update Vercel** environment variables
 3. **Create tables** in new project
 4. **Test everything** works
+

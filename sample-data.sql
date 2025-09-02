@@ -65,3 +65,4 @@ INSERT INTO public.products (name, description, price, original_price, stock_qua
 ('Baby Oil', 'Baby massage oil', 85.00, 110.00, 15, (SELECT id FROM public.categories WHERE name = 'Baby Care'), 'https://images.unsplash.com/photo-1519689680058-324119c77d7b?w=400&h=300&fit=crop', '200 ml', 23, false);
 
 
+

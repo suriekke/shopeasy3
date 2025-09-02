@@ -62,3 +62,4 @@ SELECT
     'wishlist_items' as table_name,
     COUNT(*) as record_count
 FROM wishlist_items;
+

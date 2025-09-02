@@ -56,18 +56,47 @@ const App: React.FC = () => {
     { id: 6, name: 'Grocery & Staples', icon: '🛒' }
   ]
 
-  // Sample products
+  // Fetch products from Vercel API
   useEffect(() => {
-    setProducts([
-      { id: 1, name: 'Fresh Onions', price: 40, originalPrice: 60, discount: 33, category: 'Vegetables', image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&h=300&fit=crop', unit: '1 kg', stock: 50 },
-      { id: 2, name: 'Fresh Tomatoes', price: 30, originalPrice: 45, discount: 33, category: 'Vegetables', image: 'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=400&h=300&fit=crop', unit: '500 g', stock: 30 },
-      { id: 3, name: 'Amul Milk', price: 60, originalPrice: 70, discount: 14, category: 'Dairy', image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop', unit: '1 L', stock: 25 },
-      { id: 4, name: 'Britannia Bread', price: 35, originalPrice: 40, discount: 12, category: 'Bakery', image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=300&fit=crop', unit: '400 g', stock: 20 },
-      { id: 5, name: 'Lay\'s Chips', price: 20, originalPrice: 25, discount: 20, category: 'Snacks', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop', unit: '30 g', stock: 100 },
-      { id: 6, name: 'Parle-G Biscuits', price: 10, originalPrice: 15, discount: 33, category: 'Snacks', image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop', unit: '100 g', stock: 80 },
-      { id: 7, name: 'Fresh Potatoes', price: 25, originalPrice: 35, discount: 28, category: 'Vegetables', image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&h=300&fit=crop', unit: '1 kg', stock: 40 },
-      { id: 8, name: 'Fresh Carrots', price: 35, originalPrice: 50, discount: 30, category: 'Vegetables', image: 'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=400&h=300&fit=crop', unit: '500 g', stock: 35 }
-    ])
+    const fetchProducts = async () => {
+      try {
+                       const response = await fetch('https://shopeasy-backend-tnkk.onrender.com/api/products');
+        if (response.ok) {
+          const data = await response.json();
+          // Transform API data to match our interface
+          const transformedProducts = (data.products || []).map((product: any) => ({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            originalPrice: product.original_price || product.price,
+            discount: product.discount_percentage || 0,
+            category: product.category_name || 'General',
+            image: product.image_url || 'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=400&h=300&fit=crop',
+            unit: product.unit || 'piece',
+            stock: product.stock_quantity || 0
+          }));
+          setProducts(transformedProducts);
+        } else {
+          console.error('Failed to fetch products');
+          // Fallback to sample data if API fails
+          setProducts([
+            { id: 1, name: 'Fresh Onions', price: 40, originalPrice: 60, discount: 33, category: 'Vegetables', image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&h=300&fit=crop', unit: '1 kg', stock: 50 },
+            { id: 2, name: 'Fresh Tomatoes', price: 30, originalPrice: 45, discount: 33, category: 'Vegetables', image: 'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=400&h=300&fit=crop', unit: '500 g', stock: 30 }
+          ]);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        // Fallback to sample data if API fails
+        setProducts([
+          { id: 1, name: 'Fresh Onions', price: 40, originalPrice: 60, discount: 33, category: 'Vegetables', image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&h=300&fit=crop', unit: '1 kg', stock: 50 },
+          { id: 2, name: 'Fresh Tomatoes', price: 30, originalPrice: 45, discount: 33, category: 'Vegetables', image: 'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=400&h=300&fit=crop', unit: '500 g', stock: 30 }
+        ]);
+      } finally {
+        // Products loaded - we can remove loading state from here since it's handled per operation
+      }
+    };
+
+    fetchProducts();
   }, [])
 
   const filteredProducts = selectedCategory 

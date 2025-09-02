@@ -24,3 +24,4 @@ ORDER BY table_name;
 
 -- Show project URL (from settings)
 -- This will be visible in your Supabase dashboard under Settings > API
+

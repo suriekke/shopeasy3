@@ -37,3 +37,4 @@ supabase db query "SELECT * FROM products LIMIT 10;"
 # View table count
 supabase db query "SELECT COUNT(*) FROM products;"
 ```
+

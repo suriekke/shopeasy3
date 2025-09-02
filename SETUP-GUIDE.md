@@ -199,3 +199,4 @@ Your ShopEasy customer app is now fully set up with:
 **Your app is ready for customers!** 🚀
 
 
+

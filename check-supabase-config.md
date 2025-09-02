@@ -107,3 +107,4 @@ If you want to start fresh:
 2. **Update Vercel environment variables**
 3. **Run the database schema**
 4. **Test the connection**
+
