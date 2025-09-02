@@ -111,19 +111,19 @@ const App: React.FC = () => {
     return suggestions.slice(0, 5)
   }
 
-  // Real Twilio OTP Functions - FIXED
+  // Real Twilio OTP Functions - FIXED for Render compatibility
   const handleSendOtp = async () => {
     if (phoneNumber.length === 10) {
       setIsLoading(true)
       setOtpError('')
       
       try {
-        const response = await fetch('/api/send-otp', {
+        const response = await fetch('https://shopeasy-backend-tnkk.onrender.com/api/auth/send-otp', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ phone: `+91${phoneNumber}` }),
+          body: JSON.stringify({ phone_number: `+91${phoneNumber}` }),
         })
 
         const data = await response.json()
@@ -151,13 +151,13 @@ const App: React.FC = () => {
       setOtpError('')
       
       try {
-        const response = await fetch('/api/verify-otp', {
+        const response = await fetch('https://shopeasy-backend-tnkk.onrender.com/api/auth/verify-otp', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ 
-            phone: `+91${phoneNumber}`,
+            phone_number: `+91${phoneNumber}`,
             otp: otp 
           }),
         })
