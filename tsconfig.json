@@ -17,18 +17,10 @@
     "noFallthroughCasesInSwitch": false
   },
   "include": [
-    "src/vite-env.d.ts",
-    "src/App.tsx",
-    "src/index.tsx",
-    "src/index.css",
-    "src/lib/supabase.ts"
+    "src/**/*"
   ],
   "exclude": [
-    "src/components/**/*",
-    "src/types.ts",
-    "src/lib/firebase.ts"
+    "node_modules",
+    "dist"
   ]
 }
-
-
-
