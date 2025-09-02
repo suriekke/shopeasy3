@@ -4,9 +4,13 @@ export interface Product {
   name: string
   description: string
   price: number
+  original_price?: number
+  stock_quantity?: number
   stock: number
   category: string
+  category_id?: string
   image_url?: string
+  image?: string
   images?: string[]
   sku?: string
   details?: string[]
@@ -14,19 +18,30 @@ export interface Product {
   is_active?: boolean
   created_at?: string
   updated_at?: string
+  unit?: string
+  discount_percentage?: number
+  is_featured?: boolean
+  longDescription?: string
 }
 
 export interface CartItem {
+  id: string
   product: Product
   quantity: number
+  user_id?: string
+  product_id?: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface User {
   id: string
   email: string
   full_name?: string
+  name?: string
   role: 'admin' | 'customer'
   phone?: string
+  phoneNumber?: string
   avatar?: string
 }
 
@@ -45,7 +60,7 @@ export interface UserPreferences {
 }
 
 // Navigation Types
-export type View = 'home' | 'products' | 'cart' | 'checkout' | 'profile' | 'orders' | 'wishlist'
+export type View = 'home' | 'products' | 'cart' | 'checkout' | 'profile' | 'orders' | 'wishlist' | 'HOME' | 'PROFILE' | 'ORDERS' | 'WISHLIST' | 'REFUNDS' | 'GIFT_CARDS' | 'SAVED_ADDRESSES' | 'REWARDS' | 'PAYMENT_MANAGEMENT' | 'SUGGEST_PRODUCTS' | 'NOTIFICATIONS' | 'GENERAL_INFO'
 
 // Location & Address Types
 export interface Location {
@@ -57,6 +72,7 @@ export interface Location {
   zipCode: string
   country: string
   isDefault: boolean
+  deliveryTime?: string
 }
 
 export interface Address {
@@ -65,8 +81,11 @@ export interface Address {
   city: string
   state: string
   zipCode: string
+  zip?: string
   country: string
   isDefault: boolean
+  type?: 'Home' | 'Work' | 'Other'
+  line1?: string
 }
 
 // Order Types
@@ -87,17 +106,21 @@ export interface Order {
   payment_status: PaymentStatus
   created_at: string
   updated_at: string
+  date?: string
+  estimatedDelivery?: string
 }
 
 export interface OrderItem {
+  id?: string
   product_id: number
   product_name: string
   quantity: number
   price: number
   total: number
+  image?: string
 }
 
-export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'Processing' | 'Out for Delivery' | 'Delivered' | 'Cancelled'
 export type PaymentStatus = 'pending' | 'paid' | 'failed'
 
 // Payment Types
@@ -109,9 +132,11 @@ export interface PaymentMethod {
   expiryMonth: number
   expiryYear: number
   isDefault: boolean
+  provider?: string
+  expiry?: string
 }
 
-export type PaymentMethodType = 'card' | 'paypal' | 'bank'
+export type PaymentMethodType = 'card' | 'paypal' | 'bank' | 'Credit Card'
 
 // Category Types
 export interface Category {
@@ -119,7 +144,12 @@ export interface Category {
   name: string
   description: string
   image: string
+  icon?: string
   productCount: number
+  is_active?: boolean
+  sort_order?: number
+  created_at?: string
+  updated_at?: string
 }
 
 // Review Types
@@ -131,6 +161,8 @@ export interface Review {
   comment: string
   created_at: string
   user_name: string
+  author?: string
+  date?: string
 }
 
 // Notification Types
@@ -140,7 +172,9 @@ export interface Notification {
   title: string
   message: string
   isRead: boolean
+  read?: boolean
   created_at: string
+  date?: string
 }
 
 // Reward Types
@@ -152,6 +186,8 @@ export interface Reward {
   discount: number
   expiryDate: string
   isActive: boolean
+  title?: string
+  code?: string
 }
 
 // Gift Card Types
@@ -162,6 +198,7 @@ export interface GiftCard {
   balance: number
   isActive: boolean
   expiryDate: string
+  transactions?: any[]
 }
 
 // Refund Types
@@ -172,6 +209,8 @@ export interface Refund {
   reason: string
   status: 'Processing' | 'Completed'
   created_at: string
+  orderId?: number
+  date?: string
 }
 
 // Component Props Types

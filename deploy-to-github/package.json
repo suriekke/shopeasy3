@@ -1,0 +1,13 @@
+{
+  "name": "shopeasy-customer-app",
+  "version": "1.0.0",
+  "description": "ShopEasy Customer App - shopeasy3",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Build completed'",
+    "start": "echo 'Starting customer app'"
+  },
+  "keywords": ["customer", "app", "shopeasy"],
+  "author": "ShopEasy Team",
+  "license": "MIT"
+}

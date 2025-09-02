@@ -1,5 +1,5 @@
 // API Configuration for ShopEasy
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://shopeasy-backend.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://shopeasy-backend-tnkk.onrender.com';
 
 // API Helper Functions
 export const api = {
