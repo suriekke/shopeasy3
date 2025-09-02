@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from './lib/supabase';
 
 interface Product {
   id: number
@@ -112,27 +111,28 @@ const App: React.FC = () => {
     return suggestions.slice(0, 5)
   }
 
-  // Supabase OTP Functions - Works on both Vercel and Render immediately
+  // Real Twilio OTP Functions - FIXED
   const handleSendOtp = async () => {
     if (phoneNumber.length === 10) {
       setIsLoading(true)
       setOtpError('')
       
       try {
-        // Use Supabase OTP instead of backend API
-        const { data, error } = await supabase.auth.signInWithOtp({
-          phone: `+91${phoneNumber}`,
-          options: {
-            shouldCreateUser: true
-          }
+        const response = await fetch('https://shopeasy-backend-tnkk.onrender.com/api/auth/send-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ phone_number: `+91${phoneNumber}` }),
         })
+
+        const data = await response.json()
         
-        if (error) {
-          console.error('Supabase OTP Error:', error)
-          setOtpError('Failed to send OTP. Please try again.')
-        } else {
+        if (data.success) {
           setShowOtpInput(true)
           alert(`OTP sent to +91 ${phoneNumber}`)
+        } else {
+          setOtpError('Failed to send OTP. Please try again.')
         }
       } catch (error) {
         console.error('Error sending OTP:', error)
@@ -151,17 +151,20 @@ const App: React.FC = () => {
       setOtpError('')
       
       try {
-        // Use Supabase OTP verification
-        const { data, error } = await supabase.auth.verifyOtp({
-          phone: `+91${phoneNumber}`,
-          token: otp,
-          type: 'sms'
+        const response = await fetch('https://shopeasy-backend-tnkk.onrender.com/api/auth/verify-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            phone_number: `+91${phoneNumber}`,
+            otp: otp 
+          }),
         })
+
+        const data = await response.json()
         
-        if (error) {
-          console.error('Supabase OTP Verification Error:', error)
-          setOtpError('Invalid OTP. Please try again.')
-        } else {
+        if (data.success) {
           setIsLoggedIn(true)
           setUserPhone(phoneNumber)
           setShowLoginModal(false)
@@ -169,6 +172,8 @@ const App: React.FC = () => {
           setOtp('')
           setShowOtpInput(false)
           alert('Login successful!')
+        } else {
+          setOtpError('Invalid OTP. Please try again.')
         }
       } catch (error) {
         console.error('Error verifying OTP:', error)
